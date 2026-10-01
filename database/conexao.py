@@ -6,5 +6,6 @@ def get_db_connection():
         host="localhost",
         user="root",
         password="sua_senha",
-        database="marketplace_db"
+        database="marketplace_db",
+        charset="utf8mb4"
     )
