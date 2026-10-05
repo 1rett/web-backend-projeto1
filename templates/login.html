@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Entrar – Arquibancada</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main class="box"><h1 id="titulo">Entrar</h1><p class="sub">Acesse sua conta para comprar.</p>
+<div class="tabs" role="group" aria-label="Escolher ação"><button class="chip" data-m="entrar" aria-pressed="true">Já tenho conta</button><button class="chip" data-m="criar" aria-pressed="false">Sou novo aqui</button></div>
+<form id="form" novalidate><div id="campoNome" style="display:none"><label for="nome">Nome completo</label><input id="nome" autocomplete="name"></div>
+<label for="email">E-mail</label><input id="email" type="email" autocomplete="email" placeholder="rafael@email.com">
+<div class="err" id="erro" role="alert"></div><button class="cta" id="enviar" type="submit">Entrar</button></form></main>
+<script src="{{ url_for('static', filename='comum.js') }}"></script><script src="{{ url_for('static', filename='login.js') }}"></script></body></html>

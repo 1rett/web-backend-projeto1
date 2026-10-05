@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Arquibancada – Camisas de futebol</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main class="wrap">
+<section class="hero">
+  <div><h1>Vista a camisa<em>do seu time.</em></h1><p>Marketplace de camisas de futebol: compre direto de quem vende, com troca garantida e parcelamento sem juros.</p><a class="cta" href="#loja">Ver camisas</a></div>
+  <div class="shirts" id="heroShirts" aria-hidden="true"></div>
+</section>
+<section class="perks">
+  <div class="perk"><i>🚚</i><div><b>Frete grátis</b><small>em compras acima de R$ 299</small></div></div>
+  <div class="perk"><i>🔄</i><div><b>Troca fácil</b><small>até 30 dias após a compra</small></div></div>
+  <div class="perk"><i>💳</i><div><b>6x sem juros</b><small>no cartão de crédito</small></div></div>
+</section>
+<section class="cats">
+  <a class="cat sp" href="?cat=Times%20de%20SP#loja"><h3>Times de SP</h3><span>Palmeiras, Corinthians, São Paulo e Santos</span></a>
+  <a class="cat rj" href="?cat=Times%20do%20RJ#loja"><h3>Times do RJ</h3><span>Flamengo, Vasco, Fluminense e Botafogo</span></a>
+</section>
+<section class="shop" id="loja"><h2>Camisas à venda</h2><p class="sub2">Escolha seu time e vista a camisa.</p>
+<input class="search" id="busca" type="search" placeholder="Buscar pelo nome do time" aria-label="Buscar camisa">
+<div class="chips" id="chips" role="group" aria-label="Filtrar por categoria"></div><div class="grid" id="grid"></div></section>
+</main>
+<script src="{{ url_for('static', filename='comum.js') }}"></script><script src="{{ url_for('static', filename='loja.js') }}"></script></body></html>
