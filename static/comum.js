@@ -1,5 +1,4 @@
 // ===== Dados (mesma estrutura do banco marketplace_db) =====
-const USUARIOS=[{id:1,nome:'Rafael Rett',email:'rafael@email.com'},{id:2,nome:'Geovani Kloche',email:'geovani@email.com'}];
 const BASE=[
  {id:1,titulo:'Camisa Palmeiras',descricao:'Camisa de futebol do Palmeiras.',preco:249.9,categoria:'Times de SP',imagem_url:'https://example.com/palmeiras.jpg',usuario_id:1,cor:'#0b7a3b',cor2:'#ffffff',bg:'#e0f3e8'},
  {id:2,titulo:'Camisa Corinthians',descricao:'Camisa de futebol do Corinthians.',preco:249.9,categoria:'Times de SP',imagem_url:'https://example.com/corinthians.jpg',usuario_id:1,cor:'#ffffff',cor2:'#111111',bg:'#e6e8ee'},
@@ -14,10 +13,10 @@ const R=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const $=id=>document.getElementById(id);
 const ler=(k,v)=>{try{return JSON.parse(localStorage.getItem(k))??v}catch(e){return v}};
 const gravar=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
-const todosUsuarios=()=>USUARIOS.concat(ler('contas',[]));
 const P=BASE;
-const vendedor=p=>(todosUsuarios().find(u=>u.id===p.usuario_id)||{nome:'Vendedor'}).nome;
+const vendedor=p=>'Vendedor';
 const CATEGORIAS=[...new Set(P.map(p=>p.categoria))];
+let usuarioAtual=null;
 
 // Camisa desenhada em SVG (aparece quando a imagem_url não carrega)
 function camisa(p){
@@ -46,17 +45,29 @@ function desenharCarrinho(){
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),2200)}
 function abrir(v){$('drawer').classList.toggle('open',v);$('veil').classList.toggle('on',v)}
 
+async function carregarUsuarioAtual(){
+ try{
+  const resposta=await fetch('/api/auth/me');
+  if(!resposta.ok)throw new Error(`Resposta HTTP ${resposta.status}`);
+  const resultado=await resposta.json();
+  usuarioAtual=resultado.usuario;
+  const link=$('conta');
+  link.textContent=usuarioAtual?'Olá, '+usuarioAtual.nome.split(' ')[0]:'Entrar';
+ }catch(erro){
+  console.error('Falha ao consultar a sessão do usuário:',erro);
+ }
+}
+
 // ===== Cabeçalho e rodapé iguais em todas as páginas =====
 function montarLayout(){
- const u=ler('usuario',null);
  document.body.insertAdjacentHTML('afterbegin',`<div class="top">Frete grátis em compras acima de <b>R$ 299</b> · Pague em até 6x sem juros</div>
- <header><div class="wrap"><a class="logo" href="index.html">ARQUIBANCADA<span>.</span></a>
- <nav><a class="link hide" href="index.html">Início</a><a class="link hide" href="index.html?cat=Times%20de%20SP#loja">Times de SP</a><a class="link hide" href="index.html?cat=Times%20do%20RJ#loja">Times do RJ</a>
- <a class="link" href="login.html">${u?'Olá, '+u.nome.split(' ')[0]:'Entrar'}</a>
+ <header><div class="wrap"><a class="logo" href="/">ARQUIBANCADA<span>.</span></a>
+ <nav><a class="link hide" href="/">Início</a><a class="link hide" href="/?cat=Times%20de%20SP#loja">Times de SP</a><a class="link hide" href="/?cat=Times%20do%20RJ#loja">Times do RJ</a>
+ <a class="link" id="conta" href="/login">Entrar</a>
  <button class="cartbtn" id="openCart" aria-label="Abrir carrinho">Carrinho<b id="count">0</b></button></nav></div></header>`);
  document.body.insertAdjacentHTML('beforeend',`<footer><div class="wrap"><div class="fcols">
  <div><span class="logo">ARQUIBANCADA.</span><p>O marketplace de camisas de futebol: compre direto de quem vende.</p></div>
- <div><h4>Categorias</h4><a href="index.html?cat=Times%20de%20SP#loja">Times de SP</a><a href="index.html?cat=Times%20do%20RJ#loja">Times do RJ</a></div>
+ <div><h4>Categorias</h4><a href="/?cat=Times%20de%20SP#loja">Times de SP</a><a href="/?cat=Times%20do%20RJ#loja">Times do RJ</a></div>
  <div><h4>Ajuda</h4><p>Trocas em até 30 dias</p><p>contato@arquibancada.com</p></div></div>
  <div class="copy">© 2026 Arquibancada · Projeto acadêmico, marketplace fictício.</div></div></footer>
  <div class="veil" id="veil"></div>
@@ -65,11 +76,13 @@ function montarLayout(){
  <div class="toast" id="toast" role="status"></div>`);
  $('openCart').onclick=()=>abrir(true);$('closeCart').onclick=()=>abrir(false);$('veil').onclick=()=>abrir(false);
  $('items').onclick=e=>{const k=e.target.dataset.k;if(k===undefined)return;cart[k].q+=+e.target.dataset.d;if(cart[k].q<1)cart.splice(k,1);gravar('carrinho',cart);desenharCarrinho()};
- $('checkout').onclick=()=>{
+ $('checkout').onclick=async()=>{
   if(!cart.length)return toast('Adicione uma camisa antes de finalizar');
-  if(!ler('usuario',null)){toast('Entre na sua conta para finalizar');return setTimeout(()=>location.href='login.html',1200)}
+  await carregarUsuarioAtual();
+  if(!usuarioAtual){toast('Entre na sua conta para finalizar');return setTimeout(()=>location.href='/login',1200)}
   cart=[];gravar('carrinho',cart);desenharCarrinho();abrir(false);toast('Pedido realizado com sucesso!')};
  document.addEventListener('keydown',e=>{if(e.key==='Escape')abrir(false)});
  desenharCarrinho();
 }
 montarLayout();
+carregarUsuarioAtual();

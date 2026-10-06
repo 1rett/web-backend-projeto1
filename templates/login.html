@@ -8,9 +8,11 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-<main class="box"><h1 id="titulo">Entrar</h1><p class="sub">Acesse sua conta para comprar.</p>
+<main class="box"><h1 id="titulo">Entrar</h1><p class="sub" id="descricao">Acesse sua conta para comprar.</p>
 <div class="tabs" role="group" aria-label="Escolher ação"><button class="chip" data-m="entrar" aria-pressed="true">Já tenho conta</button><button class="chip" data-m="criar" aria-pressed="false">Sou novo aqui</button></div>
-<form id="form" novalidate><div id="campoNome" style="display:none"><label for="nome">Nome completo</label><input id="nome" autocomplete="name"></div>
-<label for="email">E-mail</label><input id="email" type="email" autocomplete="email" placeholder="rafael@email.com">
-<div class="err" id="erro" role="alert"></div><button class="cta" id="enviar" type="submit">Entrar</button></form></main>
+<div class="err" id="erro" role="alert"></div>
+<form id="form"><div id="campoNome" hidden><label for="nome">Nome completo</label><input id="nome" name="nome" autocomplete="name" maxlength="100"></div>
+<label for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="email" maxlength="100" required>
+<label for="senha">Senha</label><input id="senha" name="senha" type="password" autocomplete="current-password" minlength="8" required>
+<button class="cta" id="enviar" type="submit">Entrar</button></form></main>
 <script src="{{ url_for('static', filename='comum.js') }}"></script><script src="{{ url_for('static', filename='login.js') }}"></script></body></html>

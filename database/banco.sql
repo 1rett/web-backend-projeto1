@@ -1,16 +1,14 @@
-﻿CREATE DATABASE IF NOT EXISTS marketplace_db CHARACTER SET utf8mb4;
+CREATE DATABASE IF NOT EXISTS marketplace_db CHARACTER SET utf8mb4;
 USE marketplace_db;
 
-DROP TABLE IF EXISTS produtos;
-DROP TABLE IF EXISTS usuarios;
-
-CREATE TABLE usuarios (
+CREATE TABLE IF NOT EXISTS usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE
+    email VARCHAR(100) NOT NULL UNIQUE,
+    senha_hash VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE produtos (
+CREATE TABLE IF NOT EXISTS produtos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     titulo VARCHAR(150) NOT NULL,
     descricao TEXT,
@@ -21,16 +19,27 @@ CREATE TABLE produtos (
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
 
-INSERT INTO usuarios (nome, email) VALUES
-('Rafael Rett', 'rafael@email.com'),
-('Geovani Kloche', 'geovani@email.com');
+SET @has_senha_hash = (
+    SELECT COUNT(*)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'usuarios'
+      AND COLUMN_NAME = 'senha_hash'
+);
+SET @add_senha_hash = IF(
+    @has_senha_hash = 0,
+    'ALTER TABLE usuarios ADD COLUMN senha_hash VARCHAR(255) NULL',
+    'SELECT 1'
+);
+PREPARE migration FROM @add_senha_hash;
+EXECUTE migration;
+DEALLOCATE PREPARE migration;
 
-INSERT INTO produtos (titulo, descricao, preco, categoria, imagem_url, usuario_id) VALUES
-('Camisa Palmeiras', 'Camisa de futebol do Palmeiras.', 249.90, 'Times de SP', 'https://example.com/palmeiras.jpg', 1),
-('Camisa Corinthians', 'Camisa de futebol do Corinthians.', 249.90, 'Times de SP', 'https://example.com/corinthians.jpg', 1),
-('Camisa São Paulo', 'Camisa de futebol do São Paulo.', 249.90, 'Times de SP', 'https://example.com/sao-paulo.jpg', 1),
-('Camisa Santos', 'Camisa de futebol do Santos.', 249.90, 'Times de SP', 'https://example.com/santos.jpg', 1),
-('Camisa Flamengo', 'Camisa de futebol do Flamengo.', 249.90, 'Times do RJ', 'https://example.com/flamengo.jpg', 2),
-('Camisa Vasco', 'Camisa de futebol do Vasco.', 249.90, 'Times do RJ', 'https://example.com/vasco.jpg', 2),
-('Camisa Fluminense', 'Camisa de futebol do Fluminense.', 249.90, 'Times do RJ', 'https://example.com/fluminense.jpg', 2),
-('Camisa Botafogo', 'Camisa de futebol do Botafogo.', 249.90, 'Times do RJ', 'https://example.com/botafogo.jpg', 2);
+DELETE FROM produtos
+WHERE usuario_id IN (
+    SELECT id
+    FROM usuarios
+    WHERE email IN ('rafael@email.com', 'geovani@email.com')
+);
+DELETE FROM usuarios
+WHERE email IN ('rafael@email.com', 'geovani@email.com');
