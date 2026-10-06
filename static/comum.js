@@ -45,25 +45,13 @@ function desenharCarrinho(){
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),2200)}
 function abrir(v){$('drawer').classList.toggle('open',v);$('veil').classList.toggle('on',v)}
 
-async function carregarUsuarioAtual(){
- try{
-  const resposta=await fetch('/api/auth/me');
-  if(!resposta.ok)throw new Error(`Resposta HTTP ${resposta.status}`);
-  const resultado=await resposta.json();
-  usuarioAtual=resultado.usuario;
-  const link=$('conta');
-  link.textContent=usuarioAtual?'Olá, '+usuarioAtual.nome.split(' ')[0]:'Entrar';
- }catch(erro){
-  console.error('Falha ao consultar a sessão do usuário:',erro);
- }
-}
-
 // ===== Cabeçalho e rodapé iguais em todas as páginas =====
 function montarLayout(){
+ usuarioAtual=ler('usuario',null);
  document.body.insertAdjacentHTML('afterbegin',`<div class="top">Frete grátis em compras acima de <b>R$ 299</b> · Pague em até 6x sem juros</div>
  <header><div class="wrap"><a class="logo" href="/">ARQUIBANCADA<span>.</span></a>
  <nav><a class="link hide" href="/">Início</a><a class="link hide" href="/?cat=Times%20de%20SP#loja">Times de SP</a><a class="link hide" href="/?cat=Times%20do%20RJ#loja">Times do RJ</a>
- <a class="link" id="conta" href="/login">Entrar</a>
+ <a class="link" id="conta" href="/login">${usuarioAtual?'Olá, '+usuarioAtual.nome.split(' ')[0]:'Entrar'}</a>
  <button class="cartbtn" id="openCart" aria-label="Abrir carrinho">Carrinho<b id="count">0</b></button></nav></div></header>`);
  document.body.insertAdjacentHTML('beforeend',`<footer><div class="wrap"><div class="fcols">
  <div><span class="logo">ARQUIBANCADA.</span><p>O marketplace de camisas de futebol: compre direto de quem vende.</p></div>
@@ -76,13 +64,11 @@ function montarLayout(){
  <div class="toast" id="toast" role="status"></div>`);
  $('openCart').onclick=()=>abrir(true);$('closeCart').onclick=()=>abrir(false);$('veil').onclick=()=>abrir(false);
  $('items').onclick=e=>{const k=e.target.dataset.k;if(k===undefined)return;cart[k].q+=+e.target.dataset.d;if(cart[k].q<1)cart.splice(k,1);gravar('carrinho',cart);desenharCarrinho()};
- $('checkout').onclick=async()=>{
+ $('checkout').onclick=()=>{
   if(!cart.length)return toast('Adicione uma camisa antes de finalizar');
-  await carregarUsuarioAtual();
-  if(!usuarioAtual){toast('Entre na sua conta para finalizar');return setTimeout(()=>location.href='/login',1200)}
+  if(!ler('usuario',null)){toast('Entre na sua conta para finalizar');return setTimeout(()=>location.href='/login',1200)}
   cart=[];gravar('carrinho',cart);desenharCarrinho();abrir(false);toast('Pedido realizado com sucesso!')};
  document.addEventListener('keydown',e=>{if(e.key==='Escape')abrir(false)});
  desenharCarrinho();
 }
 montarLayout();
-carregarUsuarioAtual();

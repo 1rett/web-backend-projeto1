@@ -16,13 +16,13 @@ Este projeto consiste no desenvolvimento de uma Web API JSON desenvolvida para a
 - **Busca de Conteúdo:** Rota parametrizada com suporte a termos de busca (`String`) e paginação.
 - **Perfil de Usuário:** Rota de busca de usuários com exibição do conjunto de itens/conteúdos vinculados a ele.
 - **Interface Front-End:** Página simples em HTML/JS para consultar e visualizar as rotas da API.
-- **Autenticação:** Cadastro com nome, e-mail e senha, login, sessão e logout. As senhas são armazenadas com hash no MySQL.
+- **Login demonstrativo:** Cadastro e acesso simulados no navegador usando nome e e-mail; não grava contas no MySQL.
 
-### 🔐 Cadastro e acesso
+### 🔐 Login demonstrativo
 
-Abra `/login` para criar uma conta ou entrar. O cadastro cria a conta no banco e inicia a sessão automaticamente. A senha precisa ter pelo menos 8 caracteres.
+Abra `/login` para criar uma conta ou entrar. O cadastro e a sessão ficam no armazenamento local do navegador (`localStorage`), sem criar registros no MySQL. Os dados ficam apenas nesse navegador e podem ser apagados limpando os dados do site. Esse login é somente uma simulação para desenvolvimento, não autenticação segura para produção.
 
-As rotas de autenticação são `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me` e `POST /api/auth/logout`. Configure o banco local em `database/conexao.py` e execute `database/banco.sql`; o script prepara a coluna de hash de senha e remove os registros de demonstração antigos nomeados no próprio script.
+O banco continua sendo usado pelas rotas de dados da API. O script `database/banco.sql` prepara as tabelas e remove os registros de demonstração antigos nomeados no próprio script.
 
 ---
 
