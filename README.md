@@ -1,49 +1,44 @@
-# Arquibancada — marketplace de camisas
+# Arquibancada
 
-Projeto da disciplina de Programação Web Back-End. A aplicação usa Flask para servir a interface e a API JSON, e MySQL para armazenar usuários, produtos e estoque.
+Marketplace demonstrativo de camisas de futebol. O projeto usa Flask para as páginas e a API, e MySQL para guardar usuários e produtos.
 
-## Funcionalidades
+## O que o projeto faz
 
-- Pesquisa de produtos por título ou descrição, com paginação.
-- Pesquisa por termo em uma rota parametrizada.
-- Filtro de camisas por estado.
-- Consulta de produto individual.
-- Perfil de usuário com seus produtos publicados.
-- Interface web que consulta a API para exibir a loja, detalhes de produto e perfis.
-- Catálogo ilustrativo das 20 equipes da Série A do Brasileirão 2026, agrupadas pelos estados.
-- Quatro contas fixas de vendedor no MySQL; o cadastro adicional é apenas demonstrativo e fica no navegador.
-- ID e estoque consultados no MySQL; o carrinho de demonstração impede selecionar mais unidades do que o estoque informado.
+- Exibe e pesquisa camisas por nome ou descrição, com filtro por estado e paginação.
+- Mostra os detalhes de uma camisa e o vendedor responsável.
+- Busca o perfil do usuário pelo ID e lista as camisas ligadas a ele.
+- Mostra preço, estoque e vendedor de cada camisa.
 
-As contas fixas do catálogo são Rafael Rett (`rafaelrett@gmail.com`), Geovani Kloche (`geovaniklocher@gmail.com`), Willian Watanabe (`willianwatanabe@gmail.com`) e Neymar Junior (`neymarjr@gmail.com`). Os IDs são gerados pelo MySQL e não aparecem como identificador da conta na interface.
+O catálogo inicial tem 20 camisas, quatro vendedores e cinco camisas por vendedor. Os produtos e preços são fictícios. A interface é intencionalmente simples para destacar a API, as consultas e a relação entre usuários e produtos.
 
-O catálogo fica organizado por estado: SP (Corinthians, Mirassol, Palmeiras, Red Bull Bragantino, Santos e São Paulo); RJ (Botafogo, Flamengo, Fluminense e Vasco); MG (Atlético Mineiro e Cruzeiro); BA (Bahia e Vitória); PR (Athletico Paranaense e Coritiba); RS (Grêmio e Internacional); PA (Remo); SC (Chapecoense).
+## Como explicar a organização
 
-## Tecnologias
-
-- Python 3.10 ou superior
-- Flask
-- MySQL
-- `mysql-connector-python`
-- HTML, CSS e JavaScript
-
-## Organização do projeto
+Quando alguém abre uma página ou faz uma busca, o caminho é:
 
 ```text
-.
-├── app.py
-├── controllers/       # Trata os pedidos e prepara as respostas
-├── database/          # Conexão e script de criação do banco
-├── models/            # Consultas ao MySQL
-├── routes/            # Rotas da API organizadas em Blueprints
-├── static/            # CSS e JavaScript do navegador
-└── templates/         # Páginas HTML servidas pelo Flask
+Navegador → routes → controllers → models → MySQL
+                       ↓
+                 resposta JSON
 ```
 
-O arquivo `.gitignore` exclui o ambiente virtual, caches de Python e arquivos locais de ambiente.
+- `routes/`: define os endereços da API.
+- `controllers/`: valida parâmetros, chama consultas e monta respostas.
+- `models/`: executa consultas SQL.
+- `database/`: configura a conexão, cria e preenche o banco.
+- `templates/` e `static/`: páginas HTML, estilos e JavaScript do navegador.
+- `app.py`: inicia o Flask e registra as páginas e rotas.
 
-## Configuração e execução
+Exemplo: a loja pede `/api/produtos`; a rota chama o controlador, que consulta o modelo, e o modelo busca os produtos no MySQL. Para um perfil, a API recebe o ID em `/api/usuarios/1` e retorna o usuário e os produtos cujo `usuario_id` é `1`.
 
-1. Crie e ative um ambiente virtual e instale as dependências:
+## Resumo para apresentar
+
+“O Arquibancada é um marketplace demonstrativo feito com Flask e MySQL. O usuário pode pesquisar camisas, filtrar por estado, ver o perfil de cada vendedor pelo ID e consultar as camisas ligadas a ele. As rotas recebem as requisições, os controladores organizam a resposta e os modelos consultam o banco.”
+
+## Preparar e iniciar
+
+Requisitos: Python 3.10 ou superior, MySQL Server e MySQL Workbench.
+
+1. No terminal do VS Code, crie e ative um ambiente virtual e instale as dependências:
 
    ```powershell
    python -m venv .venv
@@ -51,55 +46,51 @@ O arquivo `.gitignore` exclui o ambiente virtual, caches de Python e arquivos lo
    pip install -r requirements.txt
    ```
 
-2. Inicie o MySQL e execute `database/banco.sql` no MySQL Workbench. O script cria as tabelas ou adiciona as colunas necessárias às tabelas existentes, preservando os registros.
-3. Informe as credenciais do MySQL no terminal integrado do VS Code. Exemplo:
+2. No MySQL Workbench, conecte-se ao servidor e execute `database/banco.sql`.
+
+   **Atenção:** esse script apaga e recria as tabelas `produtos` e `usuarios`, inserindo os quatro usuários e as 20 camisas iniciais.
+
+3. No mesmo terminal do VS Code, configure a conexão usando os dados do Workbench:
 
    ```powershell
-   $env:MYSQL_HOST = "localhost"
+   $env:MYSQL_HOST = "127.0.0.1"
    $env:MYSQL_PORT = "3306"
    $env:MYSQL_USER = "root"
-   $env:MYSQL_PASSWORD = "sua-senha-local"
+   $env:MYSQL_PASSWORD = "sua-senha-do-MySQL"
    $env:MYSQL_DATABASE = "marketplace_db"
    ```
 
-   As variáveis valem para esse terminal; defina-as novamente ao abrir outro. Não coloque senhas reais em arquivos versionados.
-4. Na pasta do projeto, inicie o servidor no mesmo terminal:
+   As variáveis valem apenas para esse terminal. Não salve uma senha real no código ou em arquivos versionados.
+
+4. Gere senhas temporárias para as contas do catálogo:
 
    ```powershell
-   python app.py
-   ```
-
-5. Em outro terminal do VS Code, ative o ambiente, mantenha as variáveis do MySQL configuradas e crie as contas e o catálogo:
-
-   ```powershell
-   .\.venv\Scripts\Activate.ps1
    python -m database.seed_catalogo
    ```
 
-   Na primeira execução, o programa gera uma senha temporária diferente para cada conta e a mostra no terminal. Guarde essas senhas: o banco armazena somente hashes, e o programa não as exibirá de novo. A mesma rotina inclui os produtos que ainda não existem e não altera o estoque de produtos já cadastrados.
-6. Inicie o servidor no terminal configurado:
+   Guarde as senhas mostradas no terminal. O banco armazena somente os hashes. Essa rotina também pode completar produtos ausentes sem duplicar os já cadastrados.
+
+   Para gerar quatro senhas temporárias novas depois, execute `python -m database.seed_catalogo --reset-senhas`. O comando atualiza as senhas das quatro contas e mostra os novos valores uma única vez.
+
+5. Inicie o site:
 
    ```powershell
    python app.py
    ```
 
-7. Abra `http://127.0.0.1:5000`.
+   Abra `http://127.0.0.1:5000`. Para a loja exibir os produtos, mantenha o MySQL ligado e inicie o Flask no mesmo terminal em que configurou as variáveis.
 
-O script de catálogo atribui cinco equipes a cada vendedor fixo. Os preços (R$ 249,90) e estoques iniciais (12 unidades) são dados fictícios para a demonstração. As camisas são desenhos ilustrativos em SVG, não imagens oficiais dos uniformes. O estoque é lido do MySQL e limita o carrinho demonstrativo; finalizar a compra ainda não reserva nem reduz estoque no banco.
+Se o PowerShell bloquear a ativação do ambiente, use `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` no terminal atual e tente ativar novamente.
 
-Na tela `/login`, os quatro vendedores entram com e-mail e senha temporária. A opção “Sou novo aqui” cria apenas uma conta fictícia no navegador e não adiciona um usuário ao MySQL.
+## Endereços principais
 
-## API
+| Endereço | O que mostra |
+|---|---|
+| `/` | Loja, pesquisa de camisa e busca de usuário por ID |
+| `/produto/1` | Detalhes da camisa de ID 1 |
+| `/usuarios/1` | Perfil do usuário de ID 1 e suas camisas |
+| `/api/produtos?busca=Palmeiras` | Pesquisa de camisas pela API |
+| `/api/produtos?estado=SP` | Camisas filtradas por estado |
+| `/api/usuarios/1` | Dados do usuário e produtos associados em JSON |
 
-| Método | Rota | Descrição |
-|---|---|---|
-| `GET` | `/api/produtos?busca=palmeiras&pagina=1&por_pagina=8` | Pesquisa produtos, estoque e metadados da paginação |
-| `GET` | `/api/produtos/busca/palmeiras?pagina=1` | Pesquisa por termo usando parâmetro de rota |
-| `GET` | `/api/produtos?estado=SP` | Filtra produtos por estado |
-| `GET` | `/api/produtos/1` | Consulta um produto |
-| `GET` | `/api/usuarios/1` | Consulta o perfil do usuário e seus produtos |
-| `POST` | `/api/auth/login` | Autentica uma das quatro contas fixas |
-| `GET` | `/api/auth/me` | Consulta a sessão autenticada |
-| `POST` | `/api/auth/logout` | Encerra a sessão |
-
-As respostas da API usam JSON. Uma busca de produtos retorna `busca`, `pagina`, `por_pagina`, `estado`, `total`, `total_paginas` e `produtos`.
+O cadastro adicional da tela de login é apenas demonstrativo e fica no navegador. As contas autenticadas são as quatro contas criadas para o catálogo.

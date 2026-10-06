@@ -1,30 +1,58 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Arquibancada – Camisas de futebol</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Arquibancada | Camisas</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-<main class="wrap">
-<section class="hero">
-  <div><h1>Vista a camisa<em>do seu time.</em></h1><p>Marketplace de camisas de futebol: compre direto de quem vende, com troca garantida e parcelamento sem juros.</p><a class="cta" href="#loja">Ver camisas</a></div>
-  <div class="shirts" id="heroShirts" aria-hidden="true"></div>
-</section>
-<section class="perks">
-  <div class="perk"><i>🚚</i><div><b>Frete grátis</b><small>em compras acima de R$ 299</small></div></div>
-  <div class="perk"><i>🔄</i><div><b>Troca fácil</b><small>até 30 dias após a compra</small></div></div>
-  <div class="perk"><i>💳</i><div><b>6x sem juros</b><small>no cartão de crédito</small></div></div>
-</section>
-<section class="cats">
-  <a class="cat sp" href="?estado=SP#loja"><h3>Times de SP</h3><span>Corinthians, Mirassol, Palmeiras, Red Bull Bragantino, Santos e São Paulo</span></a>
-  <a class="cat rj" href="?estado=RJ#loja"><h3>Times do RJ</h3><span>Botafogo, Flamengo, Fluminense e Vasco</span></a>
-</section>
-<section class="shop" id="loja"><h2>Camisas à venda</h2><p class="sub2">Escolha seu time e vista a camisa.</p>
-<form class="busca-usuario" id="buscaUsuario"><label for="usuarioIdBusca">Buscar usuário por ID</label><div><input id="usuarioIdBusca" type="number" min="1" step="1" placeholder="Digite o ID do usuário" required><button class="cta" type="submit">Buscar usuário</button></div></form>
-<input class="search" id="busca" type="search" placeholder="Buscar pelo nome do time" aria-label="Buscar camisa">
-<div class="chips" id="chips" role="group" aria-label="Filtrar por categoria"></div><div class="grid" id="grid" aria-live="polite"></div><nav class="paginacao" id="paginacao" aria-label="Paginação de produtos"></nav></section>
-</main>
-<script src="{{ url_for('static', filename='comum.js') }}"></script><script src="{{ url_for('static', filename='loja.js') }}"></script></body></html>
+  <header class="container">
+    <a href="/" class="brand">Arquibancada</a>
+    <nav><a href="/login">Entrar</a></nav>
+  </header>
+
+  <main class="container">
+    <h1>Camisas do Brasileirão</h1>
+
+    <section aria-labelledby="buscar-usuario-titulo">
+      <h2 id="buscar-usuario-titulo">Buscar usuário por ID</h2>
+      <form id="buscaUsuario" class="linha">
+        <label for="usuarioIdBusca">ID do usuário</label>
+        <input id="usuarioIdBusca" type="number" min="1" step="1" required>
+        <button type="submit">Buscar usuário</button>
+      </form>
+    </section>
+
+    <section aria-labelledby="buscar-produtos-titulo">
+      <h2 id="buscar-produtos-titulo">Buscar camisas</h2>
+      <form id="buscaProdutos" class="filtros">
+        <div>
+          <label for="busca">Nome ou descrição</label>
+          <input id="busca" type="search" placeholder="Ex.: Palmeiras">
+        </div>
+        <div>
+          <label for="estado">Estado</label>
+          <select id="estado">
+            <option value="">Todos os estados</option>
+            <option value="SP">São Paulo</option>
+            <option value="RJ">Rio de Janeiro</option>
+            <option value="MG">Minas Gerais</option>
+            <option value="BA">Bahia</option>
+            <option value="PR">Paraná</option>
+            <option value="RS">Rio Grande do Sul</option>
+            <option value="PA">Pará</option>
+            <option value="SC">Santa Catarina</option>
+          </select>
+        </div>
+        <button type="submit">Pesquisar</button>
+      </form>
+      <div id="grid" aria-live="polite"></div>
+      <nav id="paginacao" class="paginacao" aria-label="Paginação"></nav>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='comum.js') }}"></script>
+  <script src="{{ url_for('static', filename='loja.js') }}"></script>
+</body>
+</html>

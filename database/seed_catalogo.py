@@ -1,3 +1,4 @@
+import argparse
 import secrets
 
 from werkzeug.security import generate_password_hash
@@ -39,7 +40,7 @@ PRECO_ILUSTRATIVO = 249.90
 ESTOQUE_INICIAL_ILUSTRATIVO = 12
 
 
-def preparar_usuarios(cursor):
+def preparar_usuarios(cursor, reset_senhas=False):
     credenciais_temporarias = []
     ids_por_email = {}
 
@@ -49,6 +50,19 @@ def preparar_usuarios(cursor):
             (email,),
         )
         usuario = cursor.fetchone()
+
+        if usuario is None:
+            # Reutiliza contas antigas que tinham o mesmo nome e outro e-mail.
+            cursor.execute(
+                "SELECT id, senha_hash FROM usuarios WHERE nome = %s",
+                (nome,),
+            )
+            usuario = cursor.fetchone()
+            if usuario is not None:
+                cursor.execute(
+                    "UPDATE usuarios SET email = %s WHERE id = %s",
+                    (email, usuario["id"]),
+                )
 
         if usuario is None:
             senha_temporaria = secrets.token_urlsafe(12)
@@ -63,7 +77,7 @@ def preparar_usuarios(cursor):
             credenciais_temporarias.append((email, senha_temporaria))
         else:
             ids_por_email[email] = usuario["id"]
-            if not usuario["senha_hash"]:
+            if reset_senhas or not usuario["senha_hash"]:
                 senha_temporaria = secrets.token_urlsafe(12)
                 cursor.execute(
                     "UPDATE usuarios SET senha_hash = %s WHERE id = %s",
@@ -112,10 +126,21 @@ def preparar_catalogo(cursor, ids_por_email):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Prepara as contas e os produtos do catálogo.")
+    parser.add_argument(
+        "--reset-senhas",
+        action="store_true",
+        help="gera uma nova senha temporária para cada vendedor do catálogo",
+    )
+    argumentos = parser.parse_args()
+
     conexao = get_db_connection()
     cursor = conexao.cursor(dictionary=True)
     try:
-        ids_por_email, credenciais = preparar_usuarios(cursor)
+        ids_por_email, credenciais = preparar_usuarios(
+            cursor,
+            reset_senhas=argumentos.reset_senhas,
+        )
         adicionados = preparar_catalogo(cursor, ids_por_email)
         conexao.commit()
     except Exception:

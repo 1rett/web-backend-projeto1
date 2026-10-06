@@ -1,12 +1,17 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Produto – Arquibancada</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Detalhes da camisa | Arquibancada</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-<main class="wrap" id="produto" data-produto-id="{{ produto_id }}"></main>
-<script src="{{ url_for('static', filename='comum.js') }}"></script><script src="{{ url_for('static', filename='produto.js') }}"></script></body></html>
+  <header class="container"><a href="/" class="brand">Arquibancada</a></header>
+  <main class="container" id="produto" data-produto-id="{{ produto_id }}">
+    <p>Carregando camisa...</p>
+  </main>
+  <script src="{{ url_for('static', filename='comum.js') }}"></script>
+  <script src="{{ url_for('static', filename='produto.js') }}"></script>
+</body>
+</html>

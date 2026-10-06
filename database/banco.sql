@@ -29,8 +29,8 @@ CREATE TABLE produtos (
 );
 
 INSERT INTO usuarios (nome, email) VALUES
-('Rafael Rett', 'rafael@email.com'),
-('Geovani Kloche', 'geovani@email.com'),
+('Rafael Rett', 'rafaelrett@gmail.com'),
+('Geovani Kloche', 'geovaniklocher@gmail.com'),
 ('Willian Watanabe', 'willianwatanabe@gmail.com'),
 ('Neymar Junior', 'neymarjr@gmail.com');
 

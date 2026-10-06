@@ -1,125 +1,85 @@
-const ESTADOS=[
- ['Todos','Todos os estados'],
- ['SP','São Paulo'],
- ['RJ','Rio de Janeiro'],
- ['MG','Minas Gerais'],
- ['BA','Bahia'],
- ['PR','Paraná'],
- ['RS','Rio Grande do Sul'],
- ['PA','Pará'],
- ['SC','Santa Catarina']
-];
-const PRODUTOS_POR_PAGINA=8;
-const parametrosIniciais=new URLSearchParams(location.search);
-let estado=parametrosIniciais.get('estado')||(
- parametrosIniciais.get('cat')==='Times de SP'?'SP':
- parametrosIniciais.get('cat')==='Times do RJ'?'RJ':'Todos'
-);
-let busca='';
-let pagina=1;
-let temporizadorBusca;
-let requisicaoAtual=0;
+const produtosPorPagina = 8;
+const parametros = new URLSearchParams(location.search);
+let busca = parametros.get('busca') || '';
+let estado = parametros.get('estado') || '';
+let pagina = 1;
 
-$('heroShirts').innerHTML=CAMISAS_DESTAQUE.map(camisa).join('');
+$('busca').value = busca;
+$('estado').value = estado;
 
-$('buscaUsuario').addEventListener('submit',evento=>{
- evento.preventDefault();
- const campo=$('usuarioIdBusca');
- const usuarioId=Number(campo.value);
- if(!Number.isInteger(usuarioId)||usuarioId<1){
-  campo.setCustomValidity('Digite um ID de usuário válido.');
-  campo.reportValidity();
-  return;
- }
- campo.setCustomValidity('');
- location.href=`/usuarios/${usuarioId}`;
+$('buscaUsuario').addEventListener('submit', evento => {
+  evento.preventDefault();
+  const usuarioId = Number($('usuarioIdBusca').value);
+  if (Number.isInteger(usuarioId) && usuarioId > 0) {
+    location.href = `/usuarios/${usuarioId}`;
+  }
 });
 
-function desenharCategorias(){
- $('chips').innerHTML=ESTADOS.map(([sigla,nome])=>
-  `<button class="chip" aria-pressed="${sigla===estado}" data-estado="${sigla}">${escaparHtml(nome)}</button>`
- ).join('');
+$('buscaProdutos').addEventListener('submit', evento => {
+  evento.preventDefault();
+  busca = $('busca').value.trim();
+  estado = $('estado').value;
+  pagina = 1;
+  carregarProdutos();
+});
+
+async function carregarProdutos() {
+  const parametrosBusca = new URLSearchParams({
+    busca,
+    pagina: String(pagina),
+    por_pagina: String(produtosPorPagina)
+  });
+  if (estado) parametrosBusca.set('estado', estado);
+
+  $('grid').textContent = 'Carregando camisas...';
+  $('paginacao').replaceChildren();
+
+  try {
+    const rota = busca
+      ? `/api/produtos/busca/${encodeURIComponent(busca)}?${parametrosBusca}`
+      : `/api/produtos?${parametrosBusca}`;
+    const resposta = await fetch(rota);
+    const resultado = await lerRespostaJson(resposta);
+    mostrarProdutos(resultado.produtos);
+    mostrarPaginacao(resultado);
+  } catch (erro) {
+    console.error('Erro ao carregar camisas:', erro);
+    $('grid').textContent = 'Não foi possível carregar as camisas. Confira o servidor e o MySQL.';
+  }
 }
 
-function desenharProdutos(produtos){
- $('grid').innerHTML=produtos.length?produtos.map(produto=>`
-  <article class="card">
-   <a class="pic" href="/produto/${Number(produto.id)}" aria-label="Ver ${escaparHtml(produto.titulo)}">${foto(produto)}</a>
-   <div class="info">
-     <small>${escaparHtml(produto.estado)} · ${escaparHtml(produto.categoria||'Série A 2026')}</small>
-    <h3><a href="/produto/${Number(produto.id)}">${escaparHtml(produto.titulo)}</a></h3>
-    <span class="sel">Vendido por <a href="/usuarios/${Number(produto.usuario_id)}">${escaparHtml(produto.vendedor_nome)}</a></span>
-     <small>ID ${Number(produto.id)} · Estoque: ${Number(produto.estoque)}</small>
-     <div class="price">${R(Number(produto.preco))}</div>
-     <button class="add" data-id="${Number(produto.id)}" ${Number(produto.estoque)<=0?'disabled':''}>${Number(produto.estoque)>0?'Adicionar ao carrinho':'Sem estoque'}</button>
-   </div>
-  </article>`
- ).join(''):'<p class="vazio">Nenhum produto encontrado. Tente outro termo ou categoria.</p>';
+function mostrarProdutos(produtos) {
+  if (!produtos.length) {
+    $('grid').textContent = 'Nenhuma camisa encontrada.';
+    return;
+  }
+
+  $('grid').innerHTML = produtos.map(produto => `
+    <article class="item">
+      <h3><a href="/produto/${Number(produto.id)}">${escaparHtml(produto.titulo)}</a></h3>
+      <p>${escaparHtml(produto.descricao || 'Sem descrição.')}</p>
+      <p>Estado: ${escaparHtml(produto.estado)}</p>
+      <p>Preço: ${R(produto.preco)} | Estoque: ${Number(produto.estoque)}</p>
+      <p>Vendedor: <a href="/usuarios/${Number(produto.usuario_id)}">${escaparHtml(produto.vendedor_nome)}</a></p>
+    </article>
+  `).join('');
 }
 
-function desenharPaginacao(resultado){
- const total=resultado.total_paginas;
- $('paginacao').innerHTML=total>1?`
-  <button class="chip" data-pagina="${pagina-1}" ${pagina<=1?'disabled':''}>Anterior</button>
-  <span>Página ${resultado.pagina} de ${total}</span>
-  <button class="chip" data-pagina="${pagina+1}" ${pagina>=total?'disabled':''}>Próxima</button>`
-  :'';
+function mostrarPaginacao(resultado) {
+  if (resultado.total_paginas < 2) return;
+
+  $('paginacao').innerHTML = `
+    <button type="button" data-pagina="${pagina - 1}" ${pagina <= 1 ? 'disabled' : ''}>Anterior</button>
+    <span>Página ${resultado.pagina} de ${resultado.total_paginas}</span>
+    <button type="button" data-pagina="${pagina + 1}" ${pagina >= resultado.total_paginas ? 'disabled' : ''}>Próxima</button>
+  `;
 }
 
-async function carregarProdutos(){
- const requisicao=++requisicaoAtual;
- const parametros=new URLSearchParams({
-  busca,
-  pagina:String(pagina),
-  por_pagina:String(PRODUTOS_POR_PAGINA)
- });
- if(estado!=='Todos')parametros.set('estado',estado);
- $('grid').innerHTML='<p class="vazio">Carregando produtos...</p>';
- $('paginacao').replaceChildren();
-
- try{
-  const resposta=await fetch(`/api/produtos?${parametros}`);
-  if(requisicao!==requisicaoAtual)return;
-  const resultado=await lerRespostaJson(resposta);
-  produtosAtuais=resultado.produtos;
-  desenharProdutos(produtosAtuais);
-  desenharPaginacao(resultado);
- }catch(erro){
-  if(requisicao!==requisicaoAtual)return;
-  console.error('Falha ao consultar os produtos na API:',erro);
-  produtosAtuais=[];
-  $('grid').innerHTML='<p class="vazio">Não foi possível carregar os produtos. Verifique se o servidor e o MySQL estão funcionando.</p>';
- }
-}
-
-$('chips').addEventListener('click',evento=>{
- const botao=evento.target.closest('[data-estado]');
- if(!botao)return;
- estado=botao.dataset.estado;
- pagina=1;
- desenharCategorias();
- carregarProdutos();
+$('paginacao').addEventListener('click', evento => {
+  const botao = evento.target.closest('[data-pagina]');
+  if (!botao || botao.disabled) return;
+  pagina = Number(botao.dataset.pagina);
+  carregarProdutos();
 });
 
-$('busca').addEventListener('input',evento=>{
- busca=evento.target.value.trim();
- pagina=1;
- clearTimeout(temporizadorBusca);
- temporizadorBusca=setTimeout(carregarProdutos,250);
-});
-
-$('paginacao').addEventListener('click',evento=>{
- const botao=evento.target.closest('[data-pagina]');
- if(!botao||botao.disabled)return;
- pagina=Number(botao.dataset.pagina);
- carregarProdutos();
- $('loja').scrollIntoView({behavior:'smooth'});
-});
-
-$('grid').addEventListener('click',evento=>{
- const botao=evento.target.closest('[data-id]');
- if(botao)adicionar(botao.dataset.id);
-});
-
-desenharCategorias();
 carregarProdutos();
