@@ -13,7 +13,7 @@ def _converter_precos(produtos):
 def _responder(termo):
     pagina = request.args.get("pagina", 1, type=int)
     por_pagina = request.args.get("por_pagina", 4, type=int)
-    categoria = request.args.get("categoria", "").strip()
+    estado = request.args.get("estado", "").strip().upper()
 
     if pagina < 1:
         pagina = 1
@@ -21,7 +21,7 @@ def _responder(termo):
         por_pagina = 4
     por_pagina = min(por_pagina, 100)
 
-    produtos, total = buscar_produtos(termo, pagina, por_pagina, categoria)
+    produtos, total = buscar_produtos(termo, pagina, por_pagina, estado)
     _converter_precos(produtos)
 
     total_paginas = math.ceil(total / por_pagina)
@@ -31,7 +31,7 @@ def _responder(termo):
             "busca": termo,
             "pagina": pagina,
             "por_pagina": por_pagina,
-            "categoria": categoria,
+            "estado": estado,
             "total": total,
             "total_paginas": total_paginas,
             "produtos": produtos,

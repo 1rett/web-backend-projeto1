@@ -4,23 +4,25 @@
 def _campos_produto():
     return """
         SELECT produtos.id, produtos.titulo, produtos.descricao, produtos.preco,
-               produtos.categoria, produtos.imagem_url, produtos.usuario_id,
+               produtos.codigo, produtos.categoria, produtos.estado, produtos.imagem_url,
+               produtos.estoque, produtos.cor_principal, produtos.cor_secundaria,
+               produtos.padrao, produtos.usuario_id,
                usuarios.nome AS vendedor_nome
         FROM produtos
         JOIN usuarios ON usuarios.id = produtos.usuario_id
     """
 
 
-def buscar_produtos(termo="", pagina=1, por_pagina=4, categoria=""):
+def buscar_produtos(termo="", pagina=1, por_pagina=4, estado=""):
     conexao = get_db_connection()
     cursor = conexao.cursor(dictionary=True)
 
     try:
         condicoes = ["(produtos.titulo LIKE %s OR produtos.descricao LIKE %s)"]
         parametros = [f"%{termo}%", f"%{termo}%"]
-        if categoria:
-            condicoes.append("produtos.categoria = %s")
-            parametros.append(categoria)
+        if estado:
+            condicoes.append("produtos.estado = %s")
+            parametros.append(estado)
         filtro = " AND ".join(condicoes)
 
         cursor.execute(

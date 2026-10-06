@@ -10,10 +10,11 @@ async function carregarProduto(){
   document.title=`${produto.titulo} – Arquibancada`;
   main.innerHTML=`<a class="back" href="/">← Voltar para a loja</a>
    <div class="prod"><div class="pic">${foto(produto)}</div>
-   <div><small>${escaparHtml(produto.categoria||'Sem categoria')}</small><h1>${escaparHtml(produto.titulo)}</h1><div class="price">${R(Number(produto.preco))}</div><small>ou 6x de ${R(Number(produto.preco)/6)} sem juros</small>
+   <div><small>${escaparHtml(produto.estado)} · ${escaparHtml(produto.categoria||'Série A 2026')}</small><h1>${escaparHtml(produto.titulo)}</h1><div class="price">${R(Number(produto.preco))}</div><small>ou 6x de ${R(Number(produto.preco)/6)} sem juros</small>
+   <p class="estoque">ID do produto: ${Number(produto.id)} · Estoque disponível: ${Number(produto.estoque)}</p>
    <ul><li>${escaparHtml(produto.descricao||'Sem descrição.')}</li><li>Vendido por <a href="/usuarios/${Number(produto.usuario_id)}">${escaparHtml(produto.vendedor_nome)}</a></li></ul>
-   <button class="add cta" id="add" style="border:0;width:100%">Adicionar ao carrinho</button></div></div>`;
-  $('add').addEventListener('click',()=>adicionar(produto.id));
+   <button class="add cta" id="add" style="border:0;width:100%" ${Number(produto.estoque)<=0?'disabled':''}>${Number(produto.estoque)>0?'Adicionar ao carrinho':'Sem estoque'}</button></div></div>`;
+  if(Number(produto.estoque)>0)$('add').addEventListener('click',()=>adicionar(produto.id));
  }catch(erro){
   if(erro.status===404){
    main.innerHTML='<div class="box"><h1>Produto não encontrado</h1><p class="sub">Volte à loja e escolha um produto disponível.</p><a class="cta" href="/">Ver produtos</a></div>';

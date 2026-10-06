@@ -1,6 +1,20 @@
-const CATEGORIAS=['Todos','Times de SP','Times do RJ'];
+const ESTADOS=[
+ ['Todos','Todos os estados'],
+ ['SP','São Paulo'],
+ ['RJ','Rio de Janeiro'],
+ ['MG','Minas Gerais'],
+ ['BA','Bahia'],
+ ['PR','Paraná'],
+ ['RS','Rio Grande do Sul'],
+ ['PA','Pará'],
+ ['SC','Santa Catarina']
+];
 const PRODUTOS_POR_PAGINA=8;
-let categoria=new URLSearchParams(location.search).get('cat')||'Todos';
+const parametrosIniciais=new URLSearchParams(location.search);
+let estado=parametrosIniciais.get('estado')||(
+ parametrosIniciais.get('cat')==='Times de SP'?'SP':
+ parametrosIniciais.get('cat')==='Times do RJ'?'RJ':'Todos'
+);
 let busca='';
 let pagina=1;
 let temporizadorBusca;
@@ -9,8 +23,8 @@ let requisicaoAtual=0;
 $('heroShirts').innerHTML=CAMISAS_DESTAQUE.map(camisa).join('');
 
 function desenharCategorias(){
- $('chips').innerHTML=CATEGORIAS.map(item=>
-  `<button class="chip" aria-pressed="${item===categoria}" data-categoria="${escaparHtml(item)}">${escaparHtml(item)}</button>`
+ $('chips').innerHTML=ESTADOS.map(([sigla,nome])=>
+  `<button class="chip" aria-pressed="${sigla===estado}" data-estado="${sigla}">${escaparHtml(nome)}</button>`
  ).join('');
 }
 
@@ -19,11 +33,12 @@ function desenharProdutos(produtos){
   <article class="card">
    <a class="pic" href="/produto/${Number(produto.id)}" aria-label="Ver ${escaparHtml(produto.titulo)}">${foto(produto)}</a>
    <div class="info">
-    <small>${escaparHtml(produto.categoria||'Sem categoria')}</small>
+     <small>${escaparHtml(produto.estado)} · ${escaparHtml(produto.categoria||'Série A 2026')}</small>
     <h3><a href="/produto/${Number(produto.id)}">${escaparHtml(produto.titulo)}</a></h3>
     <span class="sel">Vendido por <a href="/usuarios/${Number(produto.usuario_id)}">${escaparHtml(produto.vendedor_nome)}</a></span>
-    <div class="price">${R(Number(produto.preco))}</div>
-    <button class="add" data-id="${Number(produto.id)}">Adicionar ao carrinho</button>
+     <small>ID ${Number(produto.id)} · Estoque: ${Number(produto.estoque)}</small>
+     <div class="price">${R(Number(produto.preco))}</div>
+     <button class="add" data-id="${Number(produto.id)}" ${Number(produto.estoque)<=0?'disabled':''}>${Number(produto.estoque)>0?'Adicionar ao carrinho':'Sem estoque'}</button>
    </div>
   </article>`
  ).join(''):'<p class="vazio">Nenhum produto encontrado. Tente outro termo ou categoria.</p>';
@@ -45,7 +60,7 @@ async function carregarProdutos(){
   pagina:String(pagina),
   por_pagina:String(PRODUTOS_POR_PAGINA)
  });
- if(categoria!=='Todos')parametros.set('categoria',categoria);
+ if(estado!=='Todos')parametros.set('estado',estado);
  $('grid').innerHTML='<p class="vazio">Carregando produtos...</p>';
  $('paginacao').replaceChildren();
 
@@ -65,9 +80,9 @@ async function carregarProdutos(){
 }
 
 $('chips').addEventListener('click',evento=>{
- const botao=evento.target.closest('[data-categoria]');
+ const botao=evento.target.closest('[data-estado]');
  if(!botao)return;
- categoria=botao.dataset.categoria;
+ estado=botao.dataset.estado;
  pagina=1;
  desenharCategorias();
  carregarProdutos();

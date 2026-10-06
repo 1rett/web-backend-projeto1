@@ -15,10 +15,11 @@ async function carregarPerfil(){
    <div class="grid">${resultado.produtos.length?resultado.produtos.map(produto=>`
     <article class="card">
      <a class="pic" href="/produto/${Number(produto.id)}" aria-label="Ver ${escaparHtml(produto.titulo)}">${foto(produto)}</a>
-     <div class="info"><small>${escaparHtml(produto.categoria||'Sem categoria')}</small>
+     <div class="info"><small>${escaparHtml(produto.estado)} · ${escaparHtml(produto.categoria||'Série A 2026')}</small>
       <h3><a href="/produto/${Number(produto.id)}">${escaparHtml(produto.titulo)}</a></h3>
+      <small>ID ${Number(produto.id)} · Estoque: ${Number(produto.estoque)}</small>
       <div class="price">${R(Number(produto.preco))}</div>
-      <button class="add" data-id="${Number(produto.id)}">Adicionar ao carrinho</button>
+      <button class="add" data-id="${Number(produto.id)}" ${Number(produto.estoque)<=0?'disabled':''}>${Number(produto.estoque)>0?'Adicionar ao carrinho':'Sem estoque'}</button>
      </div>
     </article>`).join(''):'<p class="vazio">Este usuário ainda não publicou produtos.</p>'}</div>`;
   perfil.addEventListener('click',evento=>{

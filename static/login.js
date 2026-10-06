@@ -1,14 +1,24 @@
 let modo='entrar';
 const formulario=$('form');
 const erro=$('erro');
+const EMAILS_PREDEFINIDOS=[
+ 'rafaelrett@gmail.com',
+ 'geovaniklocher@gmail.com',
+ 'willianwatanabe@gmail.com',
+ 'neymarjr@gmail.com'
+];
 
 function atualizarModo(){
  const cadastro=modo==='criar';
  $('campoNome').hidden=!cadastro;
  $('nome').required=cadastro;
- $('titulo').textContent=cadastro?'Criar conta':'Entrar';
- $('descricao').textContent=cadastro?'Crie sua conta para comprar.':'Acesse sua conta para comprar.';
- $('enviar').textContent=cadastro?'Criar conta':'Entrar';
+ $('campoSenha').hidden=cadastro;
+ $('senha').required=!cadastro;
+ $('titulo').textContent=cadastro?'Criar conta de demonstração':'Entrar';
+ $('descricao').textContent=cadastro
+  ?'Esta conta é fictícia e ficará somente neste navegador.'
+  :'Use o e-mail e a senha temporária de um dos quatro usuários do catálogo.';
+ $('enviar').textContent=cadastro?'Criar demonstração':'Entrar';
  document.querySelectorAll('.tabs .chip').forEach(botao=>{
   botao.setAttribute('aria-pressed',botao.dataset.m===modo);
  });
@@ -22,62 +32,98 @@ document.querySelector('.tabs').addEventListener('click',evento=>{
  atualizarModo();
 });
 
-formulario.addEventListener('submit',evento=>{
+formulario.addEventListener('submit',async evento=>{
  evento.preventDefault();
  erro.textContent='';
- const nome=$('nome').value.trim();
+ $('enviar').disabled=true;
  const email=$('email').value.trim().toLowerCase();
- if(!/^\S+@\S+\.\S+$/.test(email)){
-  erro.textContent='Digite um e-mail válido, como nome@email.com.';
-  return;
- }
 
  try{
-  const contas=JSON.parse(localStorage.getItem('contas')||'[]');
-  if(!Array.isArray(contas))throw new Error('Os dados de contas salvos estão inválidos.');
-  const existente=contas.find(conta=>conta.email===email);
-  let usuario;
-  if(modo==='entrar'){
-   if(!existente){
-    erro.textContent='E-mail não cadastrado neste navegador. Use "Sou novo aqui" para criar a conta.';
-    return;
-   }
-   usuario=existente;
-  }else{
+  if(modo==='criar'){
+   const nome=$('nome').value.trim();
    if(nome.length<2){
-    erro.textContent='Digite seu nome completo.';
+    erro.textContent='Digite seu nome para criar a conta demonstrativa.';
     return;
    }
-   if(existente){
-    erro.textContent='Este e-mail já está cadastrado. Use "Já tenho conta".';
+   if(EMAILS_PREDEFINIDOS.includes(email)){
+    erro.textContent='Esse e-mail pertence a uma conta fixa do catálogo; use a opção "Já tenho conta".';
     return;
    }
-   usuario={id:Date.now(),nome,email};
+   const contas=JSON.parse(localStorage.getItem('contas')||'[]');
+   if(!Array.isArray(contas))throw new Error('A lista de contas locais está inválida.');
+   if(contas.some(conta=>conta.email===email)){
+    erro.textContent='Este e-mail já tem uma conta demonstrativa neste navegador.';
+    return;
+   }
+   const usuario={id:Date.now(),nome,email,demonstracao:true};
    localStorage.setItem('contas',JSON.stringify([...contas,usuario]));
+   localStorage.setItem('usuario',JSON.stringify(usuario));
+   location.href='/';
+   return;
   }
-  localStorage.setItem('usuario',JSON.stringify(usuario));
+
+  const resposta=await fetch('/api/auth/login',{
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({email,senha:$('senha').value})
+  });
+  const resultado=await lerRespostaJson(resposta);
+  gravar('usuario',resultado.usuario);
   location.href='/';
  }catch(falha){
-  console.error('Não foi possível acessar as contas salvas neste navegador:',falha);
-  erro.textContent='Não foi possível salvar ou ler a conta neste navegador.';
+  if(falha.status===401){
+   erro.textContent='E-mail ou senha incorretos. Contas demonstrativas locais não podem entrar por este formulário.';
+  }else if(modo==='criar'){
+   console.error('Falha ao salvar a conta demonstrativa no navegador:',falha);
+   erro.textContent='Não foi possível salvar os dados demonstrativos neste navegador.';
+  }else{
+   console.error('Falha ao entrar na conta:',falha);
+   erro.textContent='Não foi possível entrar. Verifique se o servidor e o MySQL estão funcionando.';
+  }
+ }finally{
+  $('enviar').disabled=false;
  }
 });
 
-const usuario=ler('usuario',null);
-if(usuario){
- $('titulo').textContent='Olá, '+usuario.nome.split(' ')[0];
- $('descricao').textContent='Você está conectado como '+usuario.email+'.';
- formulario.innerHTML='<button class="cta" type="button" id="sair">Sair da conta</button>';
- document.querySelector('.tabs').hidden=true;
- $('sair').addEventListener('click',()=>{
-  try{
-   localStorage.removeItem('usuario');
-   location.reload();
-  }catch(falha){
-   console.error('Não foi possível encerrar a sessão local:',falha);
-   erro.textContent='Não foi possível sair da conta neste navegador.';
+async function carregarSessao(){
+ try{
+  const resposta=await fetch('/api/auth/me');
+  const resultado=await lerRespostaJson(resposta);
+  const usuario=resultado.usuario||(
+   ler('usuario',null)?.demonstracao?ler('usuario',null):null
+  );
+  if(!usuario){
+   atualizarModo();
+   return;
   }
- });
-}else{
- atualizarModo();
+
+  $('titulo').textContent=`Olá, ${usuario.nome.split(' ')[0]}`;
+  $('descricao').textContent=usuario.demonstracao
+   ?`Conta fictícia local: ${usuario.email}. Ela não é um usuário do banco.`
+   :`Você está conectado como ${usuario.email}.`;
+  formulario.innerHTML='<button class="cta" type="button" id="sair">Sair da conta</button>';
+  document.querySelector('.tabs').hidden=true;
+  $('sair').addEventListener('click',async()=>{
+   $('sair').disabled=true;
+   try{
+    if(usuario.demonstracao){
+     localStorage.removeItem('usuario');
+    }else{
+     const logout=await fetch('/api/auth/logout',{method:'POST'});
+     await lerRespostaJson(logout);
+     localStorage.removeItem('usuario');
+    }
+    location.reload();
+   }catch(falha){
+    console.error('Falha ao encerrar sessão:',falha);
+    erro.textContent='Não foi possível sair. Tente novamente.';
+    $('sair').disabled=false;
+   }
+  });
+ }catch(falha){
+  console.error('Falha ao consultar a sessão:',falha);
+  erro.textContent='Não foi possível verificar a sessão. Verifique o servidor e o MySQL.';
+ }
 }
+
+carregarSessao();
