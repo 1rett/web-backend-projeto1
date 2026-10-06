@@ -22,6 +22,19 @@ let requisicaoAtual=0;
 
 $('heroShirts').innerHTML=CAMISAS_DESTAQUE.map(camisa).join('');
 
+$('buscaUsuario').addEventListener('submit',evento=>{
+ evento.preventDefault();
+ const campo=$('usuarioIdBusca');
+ const usuarioId=Number(campo.value);
+ if(!Number.isInteger(usuarioId)||usuarioId<1){
+  campo.setCustomValidity('Digite um ID de usuário válido.');
+  campo.reportValidity();
+  return;
+ }
+ campo.setCustomValidity('');
+ location.href=`/usuarios/${usuarioId}`;
+});
+
 function desenharCategorias(){
  $('chips').innerHTML=ESTADOS.map(([sigla,nome])=>
   `<button class="chip" aria-pressed="${sigla===estado}" data-estado="${sigla}">${escaparHtml(nome)}</button>`

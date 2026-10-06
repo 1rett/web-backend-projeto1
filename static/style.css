@@ -54,6 +54,11 @@ header nav{display:flex;gap:6px;align-items:center}
 .shop .sub2{color:var(--muted);margin:6px 0 22px}
 .search{width:100%;max-width:420px;padding:13px 20px;border:2px solid var(--line);border-radius:999px;font:inherit;background:#fff;margin-bottom:16px}
 .search:focus{border-color:var(--g);outline:0}
+.busca-usuario{max-width:520px;margin:0 auto 24px;text-align:left}
+.busca-usuario label{margin:0 0 6px}
+.busca-usuario>div{display:flex;gap:10px;align-items:center}
+.busca-usuario input{background:#fff}
+.busca-usuario .cta{padding:13px 20px;font-size:15px;white-space:nowrap}
 .chips{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:30px}
 .chip{border:2px solid var(--line);padding:8px 20px;border-radius:999px;font-weight:600;background:#fff}
 .chip[aria-pressed="true"]{background:var(--g);border-color:var(--g);color:#fff}
