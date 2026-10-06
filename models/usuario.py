@@ -7,7 +7,7 @@ def buscar_usuario_por_email(email):
 
     try:
         cursor.execute(
-            "SELECT id, nome, email, senha_hash FROM usuarios WHERE email = %s",
+            "SELECT id, nome, email, senha FROM usuarios WHERE email = %s",
             (email,)
         )
         return cursor.fetchone()

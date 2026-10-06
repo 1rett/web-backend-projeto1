@@ -1,5 +1,6 @@
+import hmac
+
 from flask import jsonify, request, session
-from werkzeug.security import check_password_hash
 
 from models.usuario import (
     buscar_usuario_com_produtos,
@@ -30,11 +31,7 @@ def iniciar_sessao():
         return jsonify({"erro": "E-mail ou senha incorretos."}), 401
 
     usuario = buscar_usuario_por_email(email)
-    if (
-        usuario is None
-        or not usuario["senha_hash"]
-        or not check_password_hash(usuario["senha_hash"], senha)
-    ):
+    if usuario is None or not usuario["senha"] or not hmac.compare_digest(usuario["senha"], senha):
         return jsonify({"erro": "E-mail ou senha incorretos."}), 401
 
     session.clear()

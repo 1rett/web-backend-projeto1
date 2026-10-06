@@ -1,8 +1,6 @@
 import argparse
 import secrets
 
-from werkzeug.security import generate_password_hash
-
 from database.conexao import get_db_connection
 
 USUARIOS = (
@@ -46,7 +44,7 @@ def preparar_usuarios(cursor, reset_senhas=False):
 
     for nome, email in USUARIOS:
         cursor.execute(
-            "SELECT id, senha_hash FROM usuarios WHERE email = %s",
+            "SELECT id, senha FROM usuarios WHERE email = %s",
             (email,),
         )
         usuario = cursor.fetchone()
@@ -54,7 +52,7 @@ def preparar_usuarios(cursor, reset_senhas=False):
         if usuario is None:
             # Reutiliza contas antigas que tinham o mesmo nome e outro e-mail.
             cursor.execute(
-                "SELECT id, senha_hash FROM usuarios WHERE nome = %s",
+                "SELECT id, senha FROM usuarios WHERE nome = %s",
                 (nome,),
             )
             usuario = cursor.fetchone()
@@ -68,20 +66,20 @@ def preparar_usuarios(cursor, reset_senhas=False):
             senha_temporaria = secrets.token_urlsafe(12)
             cursor.execute(
                 """
-                INSERT INTO usuarios (nome, email, senha_hash)
+                INSERT INTO usuarios (nome, email, senha)
                 VALUES (%s, %s, %s)
                 """,
-                (nome, email, generate_password_hash(senha_temporaria)),
+                (nome, email, senha_temporaria),
             )
             ids_por_email[email] = cursor.lastrowid
             credenciais_temporarias.append((email, senha_temporaria))
         else:
             ids_por_email[email] = usuario["id"]
-            if reset_senhas or not usuario["senha_hash"]:
+            if reset_senhas or not usuario["senha"]:
                 senha_temporaria = secrets.token_urlsafe(12)
                 cursor.execute(
-                    "UPDATE usuarios SET senha_hash = %s WHERE id = %s",
-                    (generate_password_hash(senha_temporaria), usuario["id"]),
+                    "UPDATE usuarios SET senha = %s WHERE id = %s",
+                    (senha_temporaria, usuario["id"]),
                 )
                 credenciais_temporarias.append((email, senha_temporaria))
 

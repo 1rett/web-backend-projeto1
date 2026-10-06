@@ -68,7 +68,7 @@ Requisitos: Python 3.10 ou superior, MySQL Server e MySQL Workbench.
    python -m database.seed_catalogo
    ```
 
-   Guarde as senhas mostradas no terminal. O banco armazena somente os hashes. Essa rotina também pode completar produtos ausentes sem duplicar os já cadastrados.
+   Guarde as senhas mostradas no terminal. Como as contas são fictícias, as senhas ficam em texto simples no banco. Essa rotina também pode completar produtos ausentes sem duplicar os já cadastrados.
 
    Para gerar quatro senhas temporárias novas depois, execute `python -m database.seed_catalogo --reset-senhas`. O comando atualiza as senhas das quatro contas e mostra os novos valores uma única vez.
 
@@ -93,4 +93,4 @@ Se o PowerShell bloquear a ativação do ambiente, use `Set-ExecutionPolicy -Sco
 | `/api/produtos?estado=SP` | Camisas filtradas por estado |
 | `/api/usuarios/1` | Dados do usuário e produtos associados em JSON |
 
-O cadastro adicional da tela de login é apenas demonstrativo e fica no navegador. As contas autenticadas são as quatro contas criadas para o catálogo.
+O login usa as quatro contas do catálogo. As senhas são fictícias e ficam em texto simples no banco; não reutilize esse modelo com senhas reais.
