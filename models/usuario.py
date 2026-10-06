@@ -18,6 +18,7 @@ def buscar_usuario_com_produtos(usuario_id):
                 SELECT id, titulo, descricao, preco, categoria, imagem_url, usuario_id
                 FROM produtos
                 WHERE usuario_id = %s
+                ORDER BY id
                 """,
                 (usuario_id,)
             )

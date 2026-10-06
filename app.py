@@ -1,9 +1,11 @@
 from flask import Flask, render_template
 
-from controllers.produto_controller import listar_produtos, buscar_por_termo
-from controllers.usuario_controller import perfil_usuario
+from routes.produto_routes import produtos_bp
+from routes.usuario_routes import usuarios_bp
 
 app = Flask(__name__)
+app.register_blueprint(produtos_bp)
+app.register_blueprint(usuarios_bp)
 
 
 @app.route("/")
@@ -16,19 +18,14 @@ def pagina_login():
     return render_template("login.html")
 
 
-@app.route("/api/produtos")
-def rota_produtos():
-    return listar_produtos()
+@app.route("/produto/<int:produto_id>")
+def pagina_produto(produto_id):
+    return render_template("produto.html", produto_id=produto_id)
 
 
-@app.route("/api/produtos/busca/<termo>")
-def rota_busca_termo(termo):
-    return buscar_por_termo(termo)
-
-
-@app.route("/api/usuarios/<int:usuario_id>")
-def rota_usuario(usuario_id):
-    return perfil_usuario(usuario_id)
+@app.route("/usuarios/<int:usuario_id>")
+def pagina_usuario(usuario_id):
+    return render_template("perfil.html", usuario_id=usuario_id)
 
 
 if __name__ == "__main__":

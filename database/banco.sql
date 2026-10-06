@@ -17,28 +17,3 @@ CREATE TABLE IF NOT EXISTS produtos (
     usuario_id INT NOT NULL,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
-
-SET @has_senha_hash = (
-    SELECT COUNT(*)
-    FROM information_schema.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'usuarios'
-      AND COLUMN_NAME = 'senha_hash'
-);
-SET @drop_senha_hash = IF(
-    @has_senha_hash > 0,
-    'ALTER TABLE usuarios DROP COLUMN senha_hash',
-    'SELECT 1'
-);
-PREPARE migration FROM @drop_senha_hash;
-EXECUTE migration;
-DEALLOCATE PREPARE migration;
-
-DELETE FROM produtos
-WHERE usuario_id IN (
-    SELECT id
-    FROM usuarios
-    WHERE email IN ('rafael@email.com', 'geovani@email.com')
-);
-DELETE FROM usuarios
-WHERE email IN ('rafael@email.com', 'geovani@email.com');

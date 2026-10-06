@@ -24,6 +24,6 @@
 </section>
 <section class="shop" id="loja"><h2>Camisas à venda</h2><p class="sub2">Escolha seu time e vista a camisa.</p>
 <input class="search" id="busca" type="search" placeholder="Buscar pelo nome do time" aria-label="Buscar camisa">
-<div class="chips" id="chips" role="group" aria-label="Filtrar por categoria"></div><div class="grid" id="grid"></div></section>
+<div class="chips" id="chips" role="group" aria-label="Filtrar por categoria"></div><div class="grid" id="grid" aria-live="polite"></div><nav class="paginacao" id="paginacao" aria-label="Paginação de produtos"></nav></section>
 </main>
 <script src="{{ url_for('static', filename='comum.js') }}"></script><script src="{{ url_for('static', filename='loja.js') }}"></script></body></html>

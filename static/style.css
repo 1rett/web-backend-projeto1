@@ -72,6 +72,10 @@ header nav{display:flex;gap:6px;align-items:center}
 .add{margin-top:auto;background:var(--g);color:#fff;padding:12px;border-radius:999px;font-weight:700}
 .add:hover{background:var(--gd)}
 .vazio{color:var(--muted);padding:30px 0;grid-column:1/-1;text-align:center}
+.paginacao{display:flex;justify-content:center;align-items:center;gap:18px;margin:28px 0}
+.paginacao:empty{display:none}
+.paginacao button:disabled{opacity:.5;cursor:not-allowed}
+.sel a{color:inherit}
 
 /* rodapé */
 footer{background:var(--gd);color:#d6ebe0;margin-top:70px;padding:48px 0 24px}

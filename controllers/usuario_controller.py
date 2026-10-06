@@ -7,7 +7,7 @@ def perfil_usuario(usuario_id):
     usuario = buscar_usuario_com_produtos(usuario_id)
 
     if usuario is None:
-        return jsonify({"erro": "Usuario nao encontrado."}), 404
+        return jsonify({"erro": "Usuário não encontrado."}), 404
 
     for produto in usuario["produtos"]:
         produto["preco"] = float(produto["preco"])
