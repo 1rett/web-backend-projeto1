@@ -1,8 +1,10 @@
+// Guarda os filtros e a página que estão sendo mostrados.
 const produtosPorPagina = 8;
 let termoBusca = '';
 let estadoSelecionado = '';
 let paginaAtual = 1;
 
+// Prepara a página inicial e liga os formulários aos seus eventos.
 function iniciarLoja() {
   const parametros = new URLSearchParams(window.location.search);
   termoBusca = parametros.get('busca') || '';
@@ -12,119 +14,177 @@ function iniciarLoja() {
   buscarElemento('estado').value = estadoSelecionado;
 
   buscarElemento('buscaUsuario').addEventListener('submit', abrirPerfilPesquisado);
+  buscarElemento('buscaProdutoId').addEventListener('submit', abrirProdutoPesquisado);
   buscarElemento('buscaProdutos').addEventListener('submit', pesquisarProdutos);
   buscarElemento('paginacao').addEventListener('click', mudarPagina);
 
   carregarProdutos();
 }
 
+// Abre a página de detalhes da camisa informada pelo ID.
+function abrirProdutoPesquisado(evento) {
+  evento.preventDefault();
+
+  const produtoId = Number(buscarElemento('produtoIdBusca').value);
+  if (Number.isInteger(produtoId) && produtoId > 0) {
+    window.location.href = '/produto/' + produtoId;
+  }
+}
+
+// Pesquisa um usuário pelo ID ou pelo nome.
 async function abrirPerfilPesquisado(evento) {
   evento.preventDefault();
+
   const termo = buscarElemento('nomeUsuarioBusca').value.trim();
   const resultados = buscarElemento('resultadosUsuarios');
-  if (!termo) {
+
+  if (termo === '') {
     resultados.textContent = 'Digite um nome ou ID para pesquisar.';
     return;
   }
 
-  if (/^\d+$/.test(termo)) {
-    window.location.href = '/usuarios/' + Number(termo);
+  const usuarioId = Number(termo);
+  if (Number.isInteger(usuarioId) && usuarioId > 0) {
+    window.location.href = '/usuarios/' + usuarioId;
     return;
   }
 
   resultados.textContent = 'Buscando usuários...';
+
   try {
     const resposta = await fetch('/api/usuarios/busca/' + encodeURIComponent(termo));
-    const resultado = await lerRespostaJson(resposta);
-    if (resultado.usuarios.length === 0) {
+    const dados = await lerRespostaJson(resposta);
+
+    if (dados.usuarios.length === 0) {
       resultados.textContent = 'Nenhum usuário encontrado.';
       return;
     }
 
-    resultados.innerHTML = '<ul>' + resultado.usuarios.map((usuario) =>
-      '<li><a href="/usuarios/' + Number(usuario.id) + '">' + escaparHtml(usuario.nome) +
-      ' (perfil)</a></li>'
-    ).join('') + '</ul>';
+    let listaHtml = '<ul>';
+    for (let i = 0; i < dados.usuarios.length; i += 1) {
+      const usuario = dados.usuarios[i];
+      listaHtml += '<li>';
+      listaHtml += '<a href="/usuarios/' + Number(usuario.id) + '">';
+      listaHtml += escaparHtml(usuario.nome) + ' (perfil)';
+      listaHtml += '</a>';
+      listaHtml += '</li>';
+    }
+    listaHtml += '</ul>';
+
+    resultados.innerHTML = listaHtml;
   } catch (erro) {
     console.error('Erro ao buscar usuários:', erro);
     resultados.textContent = 'Não foi possível buscar usuários. Confira o servidor e o MySQL.';
   }
 }
 
+// Lê os filtros do formulário e volta para a primeira página.
 function pesquisarProdutos(evento) {
   evento.preventDefault();
+
   termoBusca = buscarElemento('busca').value.trim();
   estadoSelecionado = buscarElemento('estado').value;
   paginaAtual = 1;
+
   carregarProdutos();
 }
 
+// Pede os produtos à API usando a busca, o estado e a página atuais.
 async function carregarProdutos() {
   const parametros = new URLSearchParams();
   parametros.set('pagina', paginaAtual);
   parametros.set('por_pagina', produtosPorPagina);
-  if (estadoSelecionado) {
+
+  if (estadoSelecionado !== '') {
     parametros.set('estado', estadoSelecionado);
   }
 
-  let rota = '/api/produtos';
-  if (termoBusca) {
-    rota = '/api/produtos/busca/' + encodeURIComponent(termoBusca);
+  let endereco = '/api/produtos';
+  if (termoBusca !== '') {
+    endereco = '/api/produtos/busca/' + encodeURIComponent(termoBusca);
   }
 
   buscarElemento('grid').textContent = 'Carregando camisas...';
   buscarElemento('paginacao').replaceChildren();
 
   try {
-    const resposta = await fetch(rota + '?' + parametros.toString());
-    const resultado = await lerRespostaJson(resposta);
-    mostrarProdutos(resultado.produtos);
-    mostrarPaginacao(resultado);
+    const resposta = await fetch(endereco + '?' + parametros.toString());
+    const dados = await lerRespostaJson(resposta);
+
+    mostrarProdutos(dados.produtos);
+    mostrarPaginacao(dados);
   } catch (erro) {
     console.error('Erro ao carregar camisas:', erro);
     buscarElemento('grid').textContent = 'Não foi possível carregar as camisas. Confira o servidor e o MySQL.';
   }
 }
 
+// Cria na página um cartão para cada camisa recebida da API.
 function mostrarProdutos(produtos) {
   const grid = buscarElemento('grid');
+
   if (produtos.length === 0) {
     grid.textContent = 'Nenhuma camisa encontrada.';
     return;
   }
 
-  let html = '';
+  let listaHtml = '';
   for (let i = 0; i < produtos.length; i += 1) {
     const produto = produtos[i];
-    html += '<article class="item">';
-    html += '<h3><a href="/produto/' + Number(produto.id) + '">' + escaparHtml(produto.titulo) + '</a></h3>';
-    html += '<p>' + escaparHtml(produto.descricao || 'Sem descrição.') + '</p>';
-    html += '<p>Estado: ' + escaparHtml(produto.estado) + '</p>';
-    html += '<p>Preço: ' + formatarPreco(produto.preco) + '</p>';
-    html += '<p>Vendedor: <a href="/usuarios/' + Number(produto.usuario_id) + '">' + escaparHtml(produto.vendedor_nome) + '</a></p>';
-    html += '</article>';
+
+    listaHtml += '<article class="item">';
+    listaHtml += '<h3><a href="/produto/' + Number(produto.id) + '">';
+    listaHtml += escaparHtml(produto.titulo) + '</a></h3>';
+    listaHtml += '<p>' + escaparHtml(produto.descricao || 'Sem descrição.') + '</p>';
+    listaHtml += '<p>Estado: ' + escaparHtml(produto.estado) + '</p>';
+    listaHtml += '<p>Preço: ' + formatarPreco(produto.preco) + '</p>';
+    listaHtml += '<p>Vendedor: <a href="/usuarios/' + Number(produto.usuario_id) + '">';
+    listaHtml += escaparHtml(produto.vendedor_nome) + '</a></p>';
+    listaHtml += '</article>';
   }
-  grid.innerHTML = html;
+
+  grid.innerHTML = listaHtml;
 }
 
-function mostrarPaginacao(resultado) {
+// Mostra a página atual e os botões de navegação, quando necessários.
+function mostrarPaginacao(dados) {
   const paginacao = buscarElemento('paginacao');
-  if (resultado.total_paginas < 2) {
-    paginacao.textContent = 'Página ' + resultado.pagina + ' de ' + resultado.total_paginas;
+
+  if (dados.total_paginas === 0) {
+    paginacao.textContent = '';
     return;
   }
 
-  paginacao.innerHTML =
-    '<button type="button" data-pagina="' + (paginaAtual - 1) + '" ' + (paginaAtual <= 1 ? 'disabled' : '') + '>Anterior</button>' +
-    '<span>Página ' + resultado.pagina + ' de ' + resultado.total_paginas + '</span>' +
-    '<button type="button" data-pagina="' + (paginaAtual + 1) + '" ' + (paginaAtual >= resultado.total_paginas ? 'disabled' : '') + '>Próxima</button>';
+  if (dados.total_paginas === 1) {
+    paginacao.textContent = 'Página 1 de 1';
+    return;
+  }
+
+  let botaoAnterior = '<button type="button" data-pagina="' + (paginaAtual - 1) + '"';
+  if (paginaAtual === 1) {
+    botaoAnterior += ' disabled';
+  }
+  botaoAnterior += '>Anterior</button>';
+
+  let botaoProxima = '<button type="button" data-pagina="' + (paginaAtual + 1) + '"';
+  if (paginaAtual === dados.total_paginas) {
+    botaoProxima += ' disabled';
+  }
+  botaoProxima += '>Próxima</button>';
+
+  paginacao.innerHTML = botaoAnterior +
+    '<span>Página ' + dados.pagina + ' de ' + dados.total_paginas + '</span>' +
+    botaoProxima;
 }
 
+// Descobre qual botão de página foi clicado e carrega os novos produtos.
 function mudarPagina(evento) {
   const botao = evento.target.closest('[data-pagina]');
-  if (!botao || botao.disabled) {
+
+  if (botao === null || botao.disabled) {
     return;
   }
+
   paginaAtual = Number(botao.dataset.pagina);
   carregarProdutos();
 }

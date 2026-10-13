@@ -26,6 +26,11 @@
 
     <section aria-labelledby="buscar-produtos-titulo">
       <h2 id="buscar-produtos-titulo">Buscar camisas</h2>
+      <form id="buscaProdutoId" class="linha">
+        <label for="produtoIdBusca">ID da camisa</label>
+        <input id="produtoIdBusca" type="number" min="1" step="1" required>
+        <button type="submit">Buscar por ID</button>
+      </form>
       <form id="buscaProdutos" class="filtros">
         <div>
           <label for="busca">Nome ou descrição</label>

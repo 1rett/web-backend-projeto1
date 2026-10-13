@@ -1,16 +1,14 @@
-﻿import math
-
-from flask import jsonify, request
+﻿from flask import jsonify, request
 
 from models.produto import buscar_produto_por_id, buscar_produtos
 
 
-def _converter_precos(produtos):
+def converter_precos(produtos):
     for produto in produtos:
         produto["preco"] = float(produto["preco"])
 
 
-def _responder(termo):
+def responder_busca(termo):
     pagina_texto = request.args.get("pagina", "1")
     por_pagina_texto = request.args.get("por_pagina", "4")
     try:
@@ -23,12 +21,14 @@ def _responder(termo):
         return jsonify({"erro": "Página e quantidade por página devem ser maiores que zero."}), 400
 
     estado = request.args.get("estado", "").strip().upper()
-    por_pagina = min(por_pagina, 100)
+    if por_pagina > 100:
+        por_pagina = 100
 
     produtos, total = buscar_produtos(termo, pagina, por_pagina, estado)
-    _converter_precos(produtos)
+    converter_precos(produtos)
 
-    total_paginas = math.ceil(total / por_pagina)
+    # Calcula as páginas arredondando para cima com uma conta inteira.
+    total_paginas = (total + por_pagina - 1) // por_pagina
 
     return jsonify(
         {
@@ -45,16 +45,16 @@ def _responder(termo):
 
 def listar_produtos():
     termo = request.args.get("busca", "").strip()
-    return _responder(termo)
+    return responder_busca(termo)
 
 
 def buscar_por_termo(termo):
-    return _responder(termo.strip())
+    return responder_busca(termo.strip())
 
 
 def produto_por_id(produto_id):
     produto = buscar_produto_por_id(produto_id)
     if produto is None:
         return jsonify({"erro": "Produto não encontrado."}), 404
-    _converter_precos([produto])
+    converter_precos([produto])
     return jsonify(produto)

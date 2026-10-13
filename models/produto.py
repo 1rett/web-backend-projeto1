@@ -1,7 +1,7 @@
 ﻿from database.conexao import get_db_connection
 
 
-def _campos_produto():
+def consulta_base_produtos():
     return """
         SELECT produtos.id, produtos.titulo, produtos.descricao, produtos.preco,
                produtos.estado, produtos.usuario_id,
@@ -31,7 +31,7 @@ def buscar_produtos(termo="", pagina=1, por_pagina=4, estado=""):
 
         offset = (pagina - 1) * por_pagina
         cursor.execute(
-            f"{_campos_produto()} WHERE {filtro} ORDER BY produtos.id LIMIT %s OFFSET %s",
+            f"{consulta_base_produtos()} WHERE {filtro} ORDER BY produtos.id LIMIT %s OFFSET %s",
             (*parametros, por_pagina, offset)
         )
         return cursor.fetchall(), total
@@ -46,7 +46,7 @@ def buscar_produto_por_id(produto_id):
 
     try:
         cursor.execute(
-            f"{_campos_produto()} WHERE produtos.id = %s",
+            f"{consulta_base_produtos()} WHERE produtos.id = %s",
             (produto_id,)
         )
         return cursor.fetchone()
