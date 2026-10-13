@@ -6,7 +6,7 @@ Marketplace demonstrativo de camisas de futebol. O projeto usa Flask para as pá
 
 - Exibe e pesquisa camisas por nome ou descrição, com filtro por estado e paginação.
 - Mostra os detalhes de uma camisa e o vendedor responsável.
-- Busca o perfil do usuário pelo ID e lista as camisas ligadas a ele.
+- Busca usuários pelo nome ou ID e exibe, no perfil, os produtos associados a cada um.
 
 O catálogo inicial tem 20 camisas, quatro vendedores e cinco camisas por vendedor. Os produtos e preços são fictícios. A interface é intencionalmente simples para destacar a API, as consultas e a relação entre usuários e produtos.
 
@@ -75,13 +75,12 @@ Se o PowerShell bloquear a ativação do ambiente, use `Set-ExecutionPolicy -Sco
 
 | Endereço | O que mostra |
 |---|---|
-| `/` | Loja, pesquisa de camisa e busca de usuário por ID |
+| `/` | Loja, pesquisa de camisas e busca de usuários pelo nome ou ID |
 | `/produto/1` | Detalhes da camisa de ID 1 |
 | `/usuarios/1` | Perfil do usuário de ID 1 e suas camisas |
+| `/api/usuarios/busca/Rafael` | Busca usuarios pelo nome |
 | `/api/produtos?busca=Palmeiras` | Pesquisa de camisas pela API |
 | `/api/produtos/busca/Palmeiras?pagina=2&por_pagina=8` | Busca parametrizada com paginação |
 | `/api/produtos?estado=SP` | Camisas filtradas por estado |
 | `/api/usuarios/1` | Dados do usuário e produtos associados em JSON |
 | `/api/produtos/1` | Detalhes do produto de ID 1 em JSON |
-
-Para a explicação detalhada das rotas, funções JavaScript, bibliotecas e perguntas da apresentação, consulte [ROTEIRO_EXPLICACAO.md](ROTEIRO_EXPLICACAO.md).

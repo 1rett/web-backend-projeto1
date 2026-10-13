@@ -15,12 +15,13 @@
     <h1>Camisas do Brasileirão</h1>
 
     <section aria-labelledby="buscar-usuario-titulo">
-      <h2 id="buscar-usuario-titulo">Buscar usuário por ID</h2>
+      <h2 id="buscar-usuario-titulo">Buscar usuário por nome ou ID</h2>
       <form id="buscaUsuario" class="linha">
-        <label for="usuarioIdBusca">ID do usuário</label>
-        <input id="usuarioIdBusca" type="number" min="1" step="1" required>
+        <label for="nomeUsuarioBusca">Nome ou ID do usuário</label>
+        <input id="nomeUsuarioBusca" type="search" placeholder="Ex.: Rafael ou 1" required>
         <button type="submit">Buscar usuário</button>
       </form>
+      <div id="resultadosUsuarios" aria-live="polite"></div>
     </section>
 
     <section aria-labelledby="buscar-produtos-titulo">

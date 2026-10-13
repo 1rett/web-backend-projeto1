@@ -18,11 +18,36 @@ function iniciarLoja() {
   carregarProdutos();
 }
 
-function abrirPerfilPesquisado(evento) {
+async function abrirPerfilPesquisado(evento) {
   evento.preventDefault();
-  const usuarioId = Number(buscarElemento('usuarioIdBusca').value);
-  if (Number.isInteger(usuarioId) && usuarioId > 0) {
-    window.location.href = '/usuarios/' + usuarioId;
+  const termo = buscarElemento('nomeUsuarioBusca').value.trim();
+  const resultados = buscarElemento('resultadosUsuarios');
+  if (!termo) {
+    resultados.textContent = 'Digite um nome ou ID para pesquisar.';
+    return;
+  }
+
+  if (/^\d+$/.test(termo)) {
+    window.location.href = '/usuarios/' + Number(termo);
+    return;
+  }
+
+  resultados.textContent = 'Buscando usuários...';
+  try {
+    const resposta = await fetch('/api/usuarios/busca/' + encodeURIComponent(termo));
+    const resultado = await lerRespostaJson(resposta);
+    if (resultado.usuarios.length === 0) {
+      resultados.textContent = 'Nenhum usuário encontrado.';
+      return;
+    }
+
+    resultados.innerHTML = '<ul>' + resultado.usuarios.map((usuario) =>
+      '<li><a href="/usuarios/' + Number(usuario.id) + '">' + escaparHtml(usuario.nome) +
+      ' (perfil)</a></li>'
+    ).join('') + '</ul>';
+  } catch (erro) {
+    console.error('Erro ao buscar usuários:', erro);
+    resultados.textContent = 'Não foi possível buscar usuários. Confira o servidor e o MySQL.';
   }
 }
 
