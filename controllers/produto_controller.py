@@ -11,14 +11,18 @@ def _converter_precos(produtos):
 
 
 def _responder(termo):
-    pagina = request.args.get("pagina", 1, type=int)
-    por_pagina = request.args.get("por_pagina", 4, type=int)
-    estado = request.args.get("estado", "").strip().upper()
+    pagina_texto = request.args.get("pagina", "1")
+    por_pagina_texto = request.args.get("por_pagina", "4")
+    try:
+        pagina = int(pagina_texto)
+        por_pagina = int(por_pagina_texto)
+    except (TypeError, ValueError):
+        return jsonify({"erro": "Página e quantidade por página devem ser números inteiros."}), 400
 
-    if pagina < 1:
-        pagina = 1
-    if por_pagina < 1:
-        por_pagina = 4
+    if pagina < 1 or por_pagina < 1:
+        return jsonify({"erro": "Página e quantidade por página devem ser maiores que zero."}), 400
+
+    estado = request.args.get("estado", "").strip().upper()
     por_pagina = min(por_pagina, 100)
 
     produtos, total = buscar_produtos(termo, pagina, por_pagina, estado)

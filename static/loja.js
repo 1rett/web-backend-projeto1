@@ -1,85 +1,107 @@
 const produtosPorPagina = 8;
-const parametros = new URLSearchParams(location.search);
-let busca = parametros.get('busca') || '';
-let estado = parametros.get('estado') || '';
-let pagina = 1;
+let termoBusca = '';
+let estadoSelecionado = '';
+let paginaAtual = 1;
 
-$('busca').value = busca;
-$('estado').value = estado;
+function iniciarLoja() {
+  const parametros = new URLSearchParams(window.location.search);
+  termoBusca = parametros.get('busca') || '';
+  estadoSelecionado = parametros.get('estado') || '';
 
-$('buscaUsuario').addEventListener('submit', evento => {
-  evento.preventDefault();
-  const usuarioId = Number($('usuarioIdBusca').value);
-  if (Number.isInteger(usuarioId) && usuarioId > 0) {
-    location.href = `/usuarios/${usuarioId}`;
-  }
-});
+  buscarElemento('busca').value = termoBusca;
+  buscarElemento('estado').value = estadoSelecionado;
 
-$('buscaProdutos').addEventListener('submit', evento => {
-  evento.preventDefault();
-  busca = $('busca').value.trim();
-  estado = $('estado').value;
-  pagina = 1;
+  buscarElemento('buscaUsuario').addEventListener('submit', abrirPerfilPesquisado);
+  buscarElemento('buscaProdutos').addEventListener('submit', pesquisarProdutos);
+  buscarElemento('paginacao').addEventListener('click', mudarPagina);
+
   carregarProdutos();
-});
+}
+
+function abrirPerfilPesquisado(evento) {
+  evento.preventDefault();
+  const usuarioId = Number(buscarElemento('usuarioIdBusca').value);
+  if (Number.isInteger(usuarioId) && usuarioId > 0) {
+    window.location.href = '/usuarios/' + usuarioId;
+  }
+}
+
+function pesquisarProdutos(evento) {
+  evento.preventDefault();
+  termoBusca = buscarElemento('busca').value.trim();
+  estadoSelecionado = buscarElemento('estado').value;
+  paginaAtual = 1;
+  carregarProdutos();
+}
 
 async function carregarProdutos() {
-  const parametrosBusca = new URLSearchParams({
-    busca,
-    pagina: String(pagina),
-    por_pagina: String(produtosPorPagina)
-  });
-  if (estado) parametrosBusca.set('estado', estado);
+  const parametros = new URLSearchParams();
+  parametros.set('pagina', paginaAtual);
+  parametros.set('por_pagina', produtosPorPagina);
+  if (estadoSelecionado) {
+    parametros.set('estado', estadoSelecionado);
+  }
 
-  $('grid').textContent = 'Carregando camisas...';
-  $('paginacao').replaceChildren();
+  let rota = '/api/produtos';
+  if (termoBusca) {
+    rota = '/api/produtos/busca/' + encodeURIComponent(termoBusca);
+  }
+
+  buscarElemento('grid').textContent = 'Carregando camisas...';
+  buscarElemento('paginacao').replaceChildren();
 
   try {
-    const rota = busca
-      ? `/api/produtos/busca/${encodeURIComponent(busca)}?${parametrosBusca}`
-      : `/api/produtos?${parametrosBusca}`;
-    const resposta = await fetch(rota);
+    const resposta = await fetch(rota + '?' + parametros.toString());
     const resultado = await lerRespostaJson(resposta);
     mostrarProdutos(resultado.produtos);
     mostrarPaginacao(resultado);
   } catch (erro) {
     console.error('Erro ao carregar camisas:', erro);
-    $('grid').textContent = 'Não foi possível carregar as camisas. Confira o servidor e o MySQL.';
+    buscarElemento('grid').textContent = 'Não foi possível carregar as camisas. Confira o servidor e o MySQL.';
   }
 }
 
 function mostrarProdutos(produtos) {
-  if (!produtos.length) {
-    $('grid').textContent = 'Nenhuma camisa encontrada.';
+  const grid = buscarElemento('grid');
+  if (produtos.length === 0) {
+    grid.textContent = 'Nenhuma camisa encontrada.';
     return;
   }
 
-  $('grid').innerHTML = produtos.map(produto => `
-    <article class="item">
-      <h3><a href="/produto/${Number(produto.id)}">${escaparHtml(produto.titulo)}</a></h3>
-      <p>${escaparHtml(produto.descricao || 'Sem descrição.')}</p>
-      <p>Estado: ${escaparHtml(produto.estado)}</p>
-      <p>Preço: ${R(produto.preco)} | Estoque: ${Number(produto.estoque)}</p>
-      <p>Vendedor: <a href="/usuarios/${Number(produto.usuario_id)}">${escaparHtml(produto.vendedor_nome)}</a></p>
-    </article>
-  `).join('');
+  let html = '';
+  for (let i = 0; i < produtos.length; i += 1) {
+    const produto = produtos[i];
+    html += '<article class="item">';
+    html += '<h3><a href="/produto/' + Number(produto.id) + '">' + escaparHtml(produto.titulo) + '</a></h3>';
+    html += '<p>' + escaparHtml(produto.descricao || 'Sem descrição.') + '</p>';
+    html += '<p>Estado: ' + escaparHtml(produto.estado) + '</p>';
+    html += '<p>Preço: ' + formatarPreco(produto.preco) + '</p>';
+    html += '<p>Vendedor: <a href="/usuarios/' + Number(produto.usuario_id) + '">' + escaparHtml(produto.vendedor_nome) + '</a></p>';
+    html += '</article>';
+  }
+  grid.innerHTML = html;
 }
 
 function mostrarPaginacao(resultado) {
-  if (resultado.total_paginas < 2) return;
+  const paginacao = buscarElemento('paginacao');
+  if (resultado.total_paginas < 2) {
+    paginacao.textContent = 'Página ' + resultado.pagina + ' de ' + resultado.total_paginas;
+    return;
+  }
 
-  $('paginacao').innerHTML = `
-    <button type="button" data-pagina="${pagina - 1}" ${pagina <= 1 ? 'disabled' : ''}>Anterior</button>
-    <span>Página ${resultado.pagina} de ${resultado.total_paginas}</span>
-    <button type="button" data-pagina="${pagina + 1}" ${pagina >= resultado.total_paginas ? 'disabled' : ''}>Próxima</button>
-  `;
+  paginacao.innerHTML =
+    '<button type="button" data-pagina="' + (paginaAtual - 1) + '" ' + (paginaAtual <= 1 ? 'disabled' : '') + '>Anterior</button>' +
+    '<span>Página ' + resultado.pagina + ' de ' + resultado.total_paginas + '</span>' +
+    '<button type="button" data-pagina="' + (paginaAtual + 1) + '" ' + (paginaAtual >= resultado.total_paginas ? 'disabled' : '') + '>Próxima</button>';
 }
 
-$('paginacao').addEventListener('click', evento => {
+function mudarPagina(evento) {
   const botao = evento.target.closest('[data-pagina]');
-  if (!botao || botao.disabled) return;
-  pagina = Number(botao.dataset.pagina);
+  if (!botao || botao.disabled) {
+    return;
+  }
+  paginaAtual = Number(botao.dataset.pagina);
   carregarProdutos();
-});
+}
 
-carregarProdutos();
+iniciarLoja();

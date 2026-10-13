@@ -1,39 +1,31 @@
-const $ = id => document.getElementById(id);
-const R = valor => Number(valor).toLocaleString('pt-BR', {
-  style: 'currency',
-  currency: 'BRL'
-});
+function buscarElemento(id) {
+  return document.getElementById(id);
+}
 
-const ler = (chave, valorPadrao) => {
-  try {
-    return JSON.parse(localStorage.getItem(chave)) ?? valorPadrao;
-  } catch {
-    return valorPadrao;
+function formatarPreco(valor) {
+  return Number(valor).toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  });
+}
+
+function escaparHtml(valor) {
+  let texto = '';
+  if (valor !== null && valor !== undefined) {
+    texto = String(valor);
   }
-};
-
-const gravar = (chave, valor) => {
-  try {
-    localStorage.setItem(chave, JSON.stringify(valor));
-  } catch {
-    // O navegador pode bloquear o armazenamento local.
-  }
-};
-
-const escaparHtml = valor => String(valor ?? '').replace(/[&<>"']/g, caractere => ({
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-  "'": '&#39;'
-}[caractere]));
+  return texto
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 async function lerRespostaJson(resposta) {
   const dados = await resposta.json();
   if (!resposta.ok) {
-    const erro = new Error(dados.erro || `Erro HTTP ${resposta.status}`);
-    erro.status = resposta.status;
-    throw erro;
+    throw new Error(dados.erro || 'A solicitação não foi concluída.');
   }
   return dados;
 }

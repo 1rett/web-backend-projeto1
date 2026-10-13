@@ -7,7 +7,6 @@ Marketplace demonstrativo de camisas de futebol. O projeto usa Flask para as pá
 - Exibe e pesquisa camisas por nome ou descrição, com filtro por estado e paginação.
 - Mostra os detalhes de uma camisa e o vendedor responsável.
 - Busca o perfil do usuário pelo ID e lista as camisas ligadas a ele.
-- Mostra preço, estoque e vendedor de cada camisa.
 
 O catálogo inicial tem 20 camisas, quatro vendedores e cinco camisas por vendedor. Os produtos e preços são fictícios. A interface é intencionalmente simples para destacar a API, as consultas e a relação entre usuários e produtos.
 
@@ -62,17 +61,7 @@ Requisitos: Python 3.10 ou superior, MySQL Server e MySQL Workbench.
 
    As variáveis valem apenas para esse terminal. Não salve uma senha real no código ou em arquivos versionados.
 
-4. Gere senhas temporárias para as contas do catálogo:
-
-   ```powershell
-   python -m database.seed_catalogo
-   ```
-
-   Guarde as senhas mostradas no terminal. Como as contas são fictícias, as senhas ficam em texto simples no banco. Essa rotina também pode completar produtos ausentes sem duplicar os já cadastrados.
-
-   Para gerar quatro senhas temporárias novas depois, execute `python -m database.seed_catalogo --reset-senhas`. O comando atualiza as senhas das quatro contas e mostra os novos valores uma única vez.
-
-5. Inicie o site:
+4. Inicie o site:
 
    ```powershell
    python app.py
@@ -90,7 +79,9 @@ Se o PowerShell bloquear a ativação do ambiente, use `Set-ExecutionPolicy -Sco
 | `/produto/1` | Detalhes da camisa de ID 1 |
 | `/usuarios/1` | Perfil do usuário de ID 1 e suas camisas |
 | `/api/produtos?busca=Palmeiras` | Pesquisa de camisas pela API |
+| `/api/produtos/busca/Palmeiras?pagina=2&por_pagina=8` | Busca parametrizada com paginação |
 | `/api/produtos?estado=SP` | Camisas filtradas por estado |
 | `/api/usuarios/1` | Dados do usuário e produtos associados em JSON |
+| `/api/produtos/1` | Detalhes do produto de ID 1 em JSON |
 
-O login usa as quatro contas do catálogo. As senhas são fictícias e ficam em texto simples no banco; não reutilize esse modelo com senhas reais.
+Para a explicação detalhada das rotas, funções JavaScript, bibliotecas e perguntas da apresentação, consulte [ROTEIRO_EXPLICACAO.md](ROTEIRO_EXPLICACAO.md).

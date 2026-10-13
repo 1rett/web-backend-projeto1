@@ -15,8 +15,6 @@ body {
 }
 
 header {
-  display: flex;
-  justify-content: space-between;
   padding: 16px 0;
   border-bottom: 1px solid #ddd;
 }
@@ -99,31 +97,6 @@ button {
   gap: 12px;
   align-items: center;
   margin: 20px 0;
-}
-
-.box {
-  max-width: 460px;
-  margin: 40px auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-}
-
-.box input, .box .cta {
-  width: 100%;
-}
-
-.tabs {
-  display: flex;
-  gap: 8px;
-  margin: 12px 0;
-}
-
-.err {
-  color: #a00;
-}
-
-[hidden] {
-  display: none !important;
 }
 
 @media (max-width: 600px) {

@@ -4,9 +4,7 @@
 def _campos_produto():
     return """
         SELECT produtos.id, produtos.titulo, produtos.descricao, produtos.preco,
-               produtos.codigo, produtos.categoria, produtos.estado, produtos.imagem_url,
-               produtos.estoque, produtos.cor_principal, produtos.cor_secundaria,
-               produtos.padrao, produtos.usuario_id,
+               produtos.estado, produtos.usuario_id,
                usuarios.nome AS vendedor_nome
         FROM produtos
         JOIN usuarios ON usuarios.id = produtos.usuario_id
