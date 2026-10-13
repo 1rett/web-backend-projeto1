@@ -1,55 +1,45 @@
-﻿from database.conexao import get_db_connection
+from database.conexao import obter_conexao
 
 
-def consulta_base_produtos():
-    return """
-        SELECT produtos.id, produtos.titulo, produtos.descricao, produtos.preco,
-               produtos.estado, produtos.usuario_id,
-               usuarios.nome AS vendedor_nome
-        FROM produtos
-        JOIN usuarios ON usuarios.id = produtos.usuario_id
-    """
-
-
-def buscar_produtos(termo="", pagina=1, por_pagina=4, estado=""):
-    conexao = get_db_connection()
+def buscar_produtos(termo, pagina, quantidade, estado):
+    conexao = obter_conexao()
     cursor = conexao.cursor(dictionary=True)
+    inicio = (pagina - 1) * quantidade
 
-    try:
-        condicoes = ["(produtos.titulo LIKE %s OR produtos.descricao LIKE %s)"]
-        parametros = [f"%{termo}%", f"%{termo}%"]
-        if estado:
-            condicoes.append("produtos.estado = %s")
-            parametros.append(estado)
-        filtro = " AND ".join(condicoes)
+    # A consulta usa parâmetros para que o texto da busca não vire código SQL.
+    cursor.execute(
+        "SELECT COUNT(*) AS total FROM produtos "
+        "WHERE (titulo LIKE %s OR descricao LIKE %s) AND (%s = '' OR estado = %s)",
+        ("%" + termo + "%", "%" + termo + "%", estado, estado)
+    )
+    total = cursor.fetchone()["total"]
 
-        cursor.execute(
-            f"SELECT COUNT(*) AS total FROM produtos WHERE {filtro}",
-            tuple(parametros)
-        )
-        total = cursor.fetchone()["total"]
-
-        offset = (pagina - 1) * por_pagina
-        cursor.execute(
-            f"{consulta_base_produtos()} WHERE {filtro} ORDER BY produtos.id LIMIT %s OFFSET %s",
-            (*parametros, por_pagina, offset)
-        )
-        return cursor.fetchall(), total
-    finally:
-        cursor.close()
-        conexao.close()
+    cursor.execute(
+        "SELECT produtos.id, produtos.titulo, produtos.descricao, produtos.preco, "
+        "produtos.estado, produtos.usuario_id, usuarios.nome AS vendedor_nome "
+        "FROM produtos JOIN usuarios ON usuarios.id = produtos.usuario_id "
+        "WHERE (produtos.titulo LIKE %s OR produtos.descricao LIKE %s) "
+        "AND (%s = '' OR produtos.estado = %s) "
+        "ORDER BY produtos.id LIMIT %s OFFSET %s",
+        ("%" + termo + "%", "%" + termo + "%", estado, estado, quantidade, inicio)
+    )
+    produtos = cursor.fetchall()
+    cursor.close()
+    conexao.close()
+    return produtos, total
 
 
-def buscar_produto_por_id(produto_id):
-    conexao = get_db_connection()
+def buscar_produto(produto_id):
+    conexao = obter_conexao()
     cursor = conexao.cursor(dictionary=True)
-
-    try:
-        cursor.execute(
-            f"{consulta_base_produtos()} WHERE produtos.id = %s",
-            (produto_id,)
-        )
-        return cursor.fetchone()
-    finally:
-        cursor.close()
-        conexao.close()
+    cursor.execute(
+        "SELECT produtos.id, produtos.titulo, produtos.descricao, produtos.preco, "
+        "produtos.estado, produtos.usuario_id, usuarios.nome AS vendedor_nome "
+        "FROM produtos JOIN usuarios ON usuarios.id = produtos.usuario_id "
+        "WHERE produtos.id = %s",
+        (produto_id,)
+    )
+    produto = cursor.fetchone()
+    cursor.close()
+    conexao.close()
+    return produto

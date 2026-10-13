@@ -1,45 +1,36 @@
-from database.conexao import get_db_connection
+from database.conexao import obter_conexao
 
 
-def buscar_usuarios_por_nome(termo):
-    conexao = get_db_connection()
+def buscar_usuarios(termo):
+    conexao = obter_conexao()
     cursor = conexao.cursor(dictionary=True)
-
-    try:
-        cursor.execute(
-            "SELECT id, nome FROM usuarios WHERE nome LIKE %s ORDER BY nome LIMIT 20",
-            (f"%{termo}%",)
-        )
-        return cursor.fetchall()
-    finally:
-        cursor.close()
-        conexao.close()
+    cursor.execute(
+        "SELECT id, nome FROM usuarios WHERE nome LIKE %s ORDER BY nome LIMIT 20",
+        ("%" + termo + "%",)
+    )
+    usuarios = cursor.fetchall()
+    cursor.close()
+    conexao.close()
+    return usuarios
 
 
-def buscar_usuario_com_produtos(usuario_id):
-    conexao = get_db_connection()
+def buscar_usuario(usuario_id):
+    conexao = obter_conexao()
     cursor = conexao.cursor(dictionary=True)
+    cursor.execute(
+        "SELECT id, nome, email FROM usuarios WHERE id = %s",
+        (usuario_id,)
+    )
+    usuario = cursor.fetchone()
 
-    try:
+    if usuario is not None:
         cursor.execute(
-            "SELECT id, nome, email FROM usuarios WHERE id = %s",
+            "SELECT id, titulo, preco FROM produtos "
+            "WHERE usuario_id = %s ORDER BY id",
             (usuario_id,)
         )
-        usuario = cursor.fetchone()
+        usuario["produtos"] = cursor.fetchall()
 
-        if usuario is not None:
-            cursor.execute(
-                """
-                SELECT id, titulo, preco
-                FROM produtos
-                WHERE usuario_id = %s
-                ORDER BY id
-                """,
-                (usuario_id,)
-            )
-            usuario["produtos"] = cursor.fetchall()
-
-        return usuario
-    finally:
-        cursor.close()
-        conexao.close()
+    cursor.close()
+    conexao.close()
+    return usuario

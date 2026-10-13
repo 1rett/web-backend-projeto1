@@ -1,86 +1,41 @@
 # Arquibancada
 
-Marketplace demonstrativo de camisas de futebol. O projeto usa Flask para as páginas e a API, e MySQL para guardar usuários e produtos.
+Projeto de Back-End para pesquisar camisas de futebol. O Flask entrega as páginas e a API; o MySQL guarda os usuários e os produtos.
 
-## O que o projeto faz
+## Arquivos
 
-- Exibe e pesquisa camisas por nome ou descrição, com filtro por estado e paginação.
-- Mostra os detalhes de uma camisa e o vendedor responsável.
-- Busca usuários pelo nome ou ID e exibe, no perfil, os produtos associados a cada um.
+- `app.py`: cria o Flask e entrega as páginas HTML.
+- `routes/`: declara os endereços da API.
+- `controllers/`: lê os parâmetros, chama os Models e monta as respostas JSON.
+- `models/`: executa as consultas SQL parametrizadas.
+- `database/conexao.py`: abre a conexão com MySQL.
+- `database/banco.sql`: cria as tabelas e insere quatro usuários e vinte camisas.
+- `templates/`: páginas HTML.
+- `static/`: JavaScript e CSS usados pelas páginas.
 
-O catálogo inicial tem 20 camisas, quatro vendedores e cinco camisas por vendedor. Os produtos e preços são fictícios. A interface é intencionalmente simples para destacar a API, as consultas e a relação entre usuários e produtos.
+O caminho de uma consulta é: navegador → rota → Controller → Model → MySQL. A resposta volta como JSON para o JavaScript mostrar na página.
 
-## Como explicar a organização
+## Preparar o projeto
 
-Quando alguém abre uma página ou faz uma busca, o caminho é:
+O projeto usa Python, Flask, mysql-connector-python e MySQL. Não são necessárias outras bibliotecas Python.
 
-```text
-Navegador → routes → controllers → models → MySQL
-                       ↓
-                 resposta JSON
-```
+1. Instale as dependências: `pip install -r requirements.txt`.
+2. Execute `database/banco.sql` no MySQL Workbench. Atenção: o script apaga e recria as tabelas `produtos` e `usuarios`.
+3. Se necessário, ajuste usuário, senha e nome do banco em `database/conexao.py` para combinar com o MySQL instalado.
+4. Inicie com `python app.py` e abra `http://127.0.0.1:5000`.
 
-- `routes/`: define os endereços da API.
-- `controllers/`: valida parâmetros, chama consultas e monta respostas.
-- `models/`: executa consultas SQL.
-- `database/`: configura a conexão, cria e preenche o banco.
-- `templates/` e `static/`: páginas HTML, estilos e JavaScript do navegador.
-- `app.py`: inicia o Flask e registra as páginas e rotas.
+## Rotas
 
-Exemplo: a loja pede `/api/produtos`; a rota chama o controlador, que consulta o modelo, e o modelo busca os produtos no MySQL. Para um perfil, a API recebe o ID em `/api/usuarios/1` e retorna o usuário e os produtos cujo `usuario_id` é `1`.
-
-## Resumo para apresentar
-
-“O Arquibancada é um marketplace demonstrativo feito com Flask e MySQL. O usuário pode pesquisar camisas, filtrar por estado, ver o perfil de cada vendedor pelo ID e consultar as camisas ligadas a ele. As rotas recebem as requisições, os controladores organizam a resposta e os modelos consultam o banco.”
-
-## Preparar e iniciar
-
-Requisitos: Python 3.10 ou superior, MySQL Server e MySQL Workbench.
-
-1. No terminal do VS Code, crie e ative um ambiente virtual e instale as dependências:
-
-   ```powershell
-   python -m venv .venv
-   .\.venv\Scripts\Activate.ps1
-   pip install -r requirements.txt
-   ```
-
-2. No MySQL Workbench, conecte-se ao servidor e execute `database/banco.sql`.
-
-   **Atenção:** esse script apaga e recria as tabelas `produtos` e `usuarios`, inserindo os quatro usuários e as 20 camisas iniciais.
-
-3. No mesmo terminal do VS Code, configure a conexão usando os dados do Workbench:
-
-   ```powershell
-   $env:MYSQL_HOST = "127.0.0.1"
-   $env:MYSQL_PORT = "3306"
-   $env:MYSQL_USER = "root"
-   $env:MYSQL_PASSWORD = "sua-senha-do-MySQL"
-   $env:MYSQL_DATABASE = "marketplace_db"
-   ```
-
-   As variáveis valem apenas para esse terminal. Não salve uma senha real no código ou em arquivos versionados.
-
-4. Inicie o site:
-
-   ```powershell
-   python app.py
-   ```
-
-   Abra `http://127.0.0.1:5000`. Para a loja exibir os produtos, mantenha o MySQL ligado e inicie o Flask no mesmo terminal em que configurou as variáveis.
-
-Se o PowerShell bloquear a ativação do ambiente, use `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` no terminal atual e tente ativar novamente.
-
-## Endereços principais
-
-| Endereço | O que mostra |
+| Método e endereço | Função |
 |---|---|
-| `/` | Loja, pesquisa de camisas e busca de usuários pelo nome ou ID |
-| `/produto/1` | Detalhes da camisa de ID 1 |
-| `/usuarios/1` | Perfil do usuário de ID 1 e suas camisas |
-| `/api/usuarios/busca/Rafael` | Busca usuarios pelo nome |
-| `/api/produtos?busca=Palmeiras` | Pesquisa de camisas pela API |
-| `/api/produtos/busca/Palmeiras?pagina=2&por_pagina=8` | Busca parametrizada com paginação |
-| `/api/produtos?estado=SP` | Camisas filtradas por estado |
-| `/api/usuarios/1` | Dados do usuário e produtos associados em JSON |
-| `/api/produtos/1` | Detalhes do produto de ID 1 em JSON |
+| `GET /` | Abre a loja. |
+| `GET /produto/<produto_id>` | Abre os detalhes da camisa. |
+| `GET /usuarios/<usuario_id>` | Abre o perfil e as camisas do usuário. |
+| `GET /api/produtos?pagina=1&por_pagina=8` | Lista camisas com paginação. Aceita também `busca` e `estado`. |
+| `GET /api/produtos/busca/<termo>?pagina=1&por_pagina=8` | Busca camisas por título ou descrição, com paginação. |
+| `GET /api/produtos/<produto_id>` | Retorna os dados de uma camisa. |
+| `GET /api/usuarios/busca/<termo>` | Busca usuários pelo nome. |
+| `GET /api/usuarios/<usuario_id>` | Retorna usuário e camisas publicadas por ele. |
+
+As rotas parametrizadas recebem o valor no próprio endereço. Nas consultas SQL, os valores são enviados separadamente com `%s`.
+
