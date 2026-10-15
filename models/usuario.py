@@ -1,22 +1,21 @@
 from database.conexao import get_db_connection
 
 
-def buscar_usuarios_por_nome(termo):
+def buscar_usuarios(termo):
     conexao = get_db_connection()
     cursor = conexao.cursor(dictionary=True)
 
     try:
         cursor.execute(
             "SELECT id, nome FROM usuarios WHERE nome LIKE %s ORDER BY nome LIMIT 20",
-            (f"%{termo}%",)
+            ("%" + termo + "%",)
         )
         return cursor.fetchall()
     finally:
         cursor.close()
-        conexao.close()
 
 
-def buscar_usuario_com_produtos(usuario_id):
+def buscar_usuario(usuario_id):
     conexao = get_db_connection()
     cursor = conexao.cursor(dictionary=True)
 
@@ -29,12 +28,8 @@ def buscar_usuario_com_produtos(usuario_id):
 
         if usuario is not None:
             cursor.execute(
-                """
-                SELECT id, titulo, preco
-                FROM produtos
-                WHERE usuario_id = %s
-                ORDER BY id
-                """,
+                "SELECT id, titulo, preco FROM produtos "
+                "WHERE usuario_id = %s ORDER BY id",
                 (usuario_id,)
             )
             usuario["produtos"] = cursor.fetchall()
@@ -42,4 +37,3 @@ def buscar_usuario_com_produtos(usuario_id):
         return usuario
     finally:
         cursor.close()
-        conexao.close()

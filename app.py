@@ -11,7 +11,7 @@ app.register_blueprint(usuarios_bp)
 
 
 @app.route("/")
-def index():
+def pagina_inicial():
     return render_template("index.html")
 
 

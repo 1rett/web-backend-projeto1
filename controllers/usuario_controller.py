@@ -1,6 +1,6 @@
 from flask import jsonify
 
-from models.usuario import buscar_usuario_com_produtos, buscar_usuarios_por_nome
+from models.usuario import buscar_usuario, buscar_usuarios
 
 
 def buscar_usuarios(termo):
@@ -8,12 +8,12 @@ def buscar_usuarios(termo):
     if not termo:
         return jsonify({"erro": "Informe um nome para buscar."}), 400
 
-    usuarios = buscar_usuarios_por_nome(termo)
+    usuarios = buscar_usuarios(termo)
     return jsonify({"busca": termo, "usuarios": usuarios})
 
 
 def perfil_usuario(usuario_id):
-    usuario = buscar_usuario_com_produtos(usuario_id)
+    usuario = buscar_usuario(usuario_id)
 
     if usuario is None:
         return jsonify({"erro": "Usuário não encontrado."}), 404
