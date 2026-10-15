@@ -1,9 +1,11 @@
 from flask import Flask, render_template
 
+from database.conexao import close_db_connection
 from routes.produto_routes import produtos_bp
 from routes.usuario_routes import usuarios_bp
 
 app = Flask(__name__)
+app.teardown_appcontext(close_db_connection)
 app.register_blueprint(produtos_bp)
 app.register_blueprint(usuarios_bp)
 
